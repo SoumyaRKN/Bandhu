@@ -53,7 +53,7 @@ Build a local-first VS Code coding AI agent (Bandhu) that runs mostly free, work
 | 20 | Make Directory - 'experiments' | Create experiments and prototyping directory | `Completed` |
 | 21 | Initialize Git Repo | Run `git init` in project root, configure basic git settings | `Completed` |
 | 22 | Create .gitignore | Create `.gitignore` file excluding `node_modules`, `.vscode`, `target`, `.ollama`, `__pycache__`, `.env`, etc | `Completed` |
-| 23 | Write README.md | Document project overview, setup steps, and usage | `Pending` |
+| 23 | Write README.md | Document project overview, setup steps, and usage | `Completed` |
 | 24 | Create LICENSE | Add MIT or appropriate open source license file | `Completed` |
 
 ---
