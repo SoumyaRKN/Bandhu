@@ -1,20 +1,34 @@
 use crate::config::Config;
+use crate::gate::{Gate, ApprovalRequest};
 use crate::registry::ToolRegistry;
+use crate::tool::Tool;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
+use std::sync::Arc;
+use tokio::sync::{oneshot, RwLock};
+use std::collections::HashMap;
 
 pub struct Loop {
-    model: Model,
     registry: ToolRegistry,
+    model: Model,
     config: Config,
+    gate: Arc<Gate>,
+    pending: Arc<RwLock<HashMap<String, oneshot::Sender<bool>>>>,
 }
 
 impl Loop {
-    pub fn new(registry: ToolRegistry, config: Config) -> Self {
+    pub fn new(
+        registry: ToolRegistry,
+        config: Config,
+        gate: Arc<Gate>,
+        pending: Arc<RwLock<HashMap<String, oneshot::Sender<bool>>>>,
+    ) -> Self {
         Self {
             model: Model::new(config.clone()),
             registry,
             config,
+            gate,
+            pending,
         }
     }
 
@@ -23,42 +37,111 @@ impl Loop {
         let mut context = request.get("context").cloned().unwrap_or(Value::Null);
         
         let mut messages = vec![];
-        let mut iterations = 0;
         let max_iterations = self.config.max_iterations;
         
-        while iterations < max_iterations {
-            iterations += 1;
-            
+        for iteration in 1..=max_iterations {
             let full_prompt = self.build_prompt(&prompt, &context);
             let output = self.model.call(full_prompt).await;
             
             if let Some(tool_call) = self.parse_tool_call(&output) {
-                let tool = self.registry.get(&tool_call.id);
+                let tool_id = &tool_call.id;
+                let tool = self.registry.get(tool_id);
                 
-                if let Some(tool) = tool {
-                    let result = tool.execute(tool_call.input);
-                    
-                    let result_value = match result {
-                        Ok(v) => json!({
-                            "type": "tool_result",
-                            "id": tool_call.id,
-                            "result": v
-                        }),
-                        Err(e) => json!({
-                            "type": "tool_error",
-                            "id": tool_call.id,
-                            "error": e
-                        }),
-                    };
-                    
-                    context = append_context(&context, result_value);
-                    continue;
+                match tool {
+                    Some(tool) => {
+                        if tool.requires() {
+                            if let Err(e) = self.gate.check(&tool_call.input, tool_id) {
+                                messages.push(json!({
+                                    "type": "tool_error",
+                                    "tool": tool_id,
+                                    "error": e
+                                }));
+                                continue;
+                            }
+                            
+                            if self.gate.requires_approval(tool_id) {
+                                let req_id = format!("{}-{}", tool_id, iteration);
+                                let (tx, rx) = oneshot::channel();
+                                {
+                                    let mut guard = self.pending.write().await;
+                                    guard.insert(req_id.clone(), tx);
+                                }
+                                
+                                let approval_msg = json!({
+                                    "type": "tool_approval",
+                                    "id": req_id,
+                                    "tool": tool_id,
+                                    "input": tool_call.input
+                                });
+                                messages.push(approval_msg);
+                                
+                                context = append_context(&context, json!({
+                                    "type": "tool_approval",
+                                    "id": req_id,
+                                    "tool": tool_id
+                                }));
+                                
+                                match rx.await {
+                                    Ok(true) => {
+                                        let result = tool.execute(tool_call.input);
+                                        let result_value = match result {
+                                            Ok(v) => json!({
+                                                "type": "tool_result",
+                                                "id": req_id,
+                                                "result": v
+                                            }),
+                                            Err(e) => json!({
+                                                "type": "tool_error",
+                                                "id": req_id,
+                                                "error": e
+                                            }),
+                                        };
+                                        context = append_context(&context, result_value);
+                                    }
+                                    Ok(false) => {
+                                        let reject_msg = json!({
+                                            "type": "tool_error",
+                                            "id": req_id,
+                                            "error": "rejected by user"
+                                        });
+                                        context = append_context(&context, reject_msg);
+                                    }
+                                    Err(_) => {
+                                        let timeout_msg = json!({
+                                            "type": "tool_error",
+                                            "id": req_id,
+                                            "error": "approval timeout"
+                                        });
+                                        context = append_context(&context, timeout_msg);
+                                    }
+                                }
+                                continue;
+                            }
+                        }
+                        
+                        let result = tool.execute(tool_call.input);
+                        let result_value = match result {
+                            Ok(v) => json!({
+                                "type": "tool_result",
+                                "id": tool_id,
+                                "result": v
+                            }),
+                            Err(e) => json!({
+                                "type": "tool_error",
+                                "id": tool_id,
+                                "error": e
+                            }),
+                        };
+                        context = append_context(&context, result_value);
+                        continue;
+                    }
+                    None => {
+                        messages.push(json!({
+                            "type": "error",
+                            "error": format!("tool not found: {}", tool_id)
+                        }));
+                    }
                 }
-                
-                messages.push(json!({
-                    "type": "error",
-                    "error": format!("tool not found: {}", tool_call.id)
-                }));
             }
             
             messages.push(json!({
@@ -69,7 +152,7 @@ impl Loop {
             return json!({
                 "type": "complete",
                 "messages": messages,
-                "iterations": iterations
+                "iterations": iteration
             });
         }
         
@@ -81,7 +164,7 @@ impl Loop {
         json!({
             "type": "complete",
             "messages": messages,
-            "iterations": iterations
+            "iterations": max_iterations
         })
     }
     
@@ -218,7 +301,9 @@ mod tests {
     fn builds_prompt() {
         let registry = ToolRegistry::new();
         let config = Config::from_env();
-        let loop_handler = Loop::new(registry, config);
+        let gate = Arc::new(Gate::new(config.clone()));
+        let pending = Arc::new(RwLock::new(HashMap::new()));
+        let loop_handler = Loop::new(registry, config, gate, pending);
         
         let prompt = "test task";
         let context = Value::Null;
@@ -233,7 +318,9 @@ mod tests {
     fn parses_tool_call_json() {
         let registry = ToolRegistry::new();
         let config = Config::from_env();
-        let loop_handler = Loop::new(registry, config);
+        let gate = Arc::new(Gate::new(config.clone()));
+        let pending = Arc::new(RwLock::new(HashMap::new()));
+        let loop_handler = Loop::new(registry, config, gate, pending);
         
         let output = r#"{"tool": "readfile", "input": {"path": "/test.rs"}}"#;
         
@@ -248,7 +335,9 @@ mod tests {
     fn rejects_non_json() {
         let registry = ToolRegistry::new();
         let config = Config::from_env();
-        let loop_handler = Loop::new(registry, config);
+        let gate = Arc::new(Gate::new(config.clone()));
+        let pending = Arc::new(RwLock::new(HashMap::new()));
+        let loop_handler = Loop::new(registry, config, gate, pending);
         
         let output = "just a regular response without tool call";
         

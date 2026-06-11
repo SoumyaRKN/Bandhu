@@ -1,5 +1,4 @@
 use std::env;
-use std::net::SocketAddr;
 
 #[derive(Debug, Clone)]
 pub struct Config {
@@ -10,11 +9,21 @@ pub struct Config {
     pub ollama_stream: bool,
     pub max_iterations: usize,
     pub rg_max_count: usize,
+    pub default_approval: bool,
+    pub approval_timeout_secs: u64,
+    pub forbidden_command_patterns: Vec<String>,
+    pub forbidden_path_patterns: Vec<String>,
 }
 
 impl Config {
     pub fn from_env() -> Self {
         let _ = dotenvy::dotenv();
+        let forbidden_command_patterns = env::var("BANDHU_FORBIDDEN_CMDS")
+            .unwrap_or_default()
+            .split(',')
+            .filter(|s| !s.trim().is_empty())
+            .map(|s| s.trim().to_lowercase())
+            .collect::<Vec<_>>();
         Self {
             server_host: env::var("BANDHU_SERVER_HOST").unwrap_or_else(|_| "127.0.0.1".to_string()),
             server_port: env::var("BANDHU_SERVER_PORT")
@@ -37,14 +46,29 @@ impl Config {
                 .ok()
                 .and_then(|v| v.parse().ok())
                 .unwrap_or(50),
+            default_approval: env::var("BANDHU_DEFAULT_APPROVAL")
+                .ok()
+                .map(|v| v == "true")
+                .unwrap_or(false),
+            approval_timeout_secs: env::var("BANDHU_APPROVAL_TIMEOUT_SECS")
+                .ok()
+                .and_then(|v| v.parse().ok())
+                .unwrap_or(300),
+            forbidden_command_patterns,
+            forbidden_path_patterns: env::var("BANDHU_FORBIDDEN_PATHS")
+                .unwrap_or_default()
+                .split(',')
+                .filter(|s| !s.trim().is_empty())
+                .map(|s| s.trim().to_string())
+                .collect(),
         }
     }
 
-    pub fn server_addr(&self) -> SocketAddr {
+    pub fn server_addr(&self) -> std::net::SocketAddr {
         let host = self.server_host.parse().unwrap_or_else(|_| {
             std::net::IpAddr::V4(std::net::Ipv4Addr::new(127, 0, 0, 1))
         });
-        SocketAddr::new(host, self.server_port)
+        std::net::SocketAddr::new(host, self.server_port)
     }
 
     pub fn ollama_api_url(&self) -> String {

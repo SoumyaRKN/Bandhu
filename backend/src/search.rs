@@ -1,8 +1,5 @@
-use crate::config::Config;
-use crate::tool::Tool;
-use serde_json::{json, Value};
-use std::path::{Path, PathBuf};
-use std::process::Command;
+use crate::{config::Config, gate::Gate};
+use serde_json::Value;
 
 pub struct Search {
     config: Config,
@@ -14,175 +11,85 @@ impl Search {
     }
 }
 
-impl Tool for Search {
-    fn id(&self) -> &'static str {
-        "search"
-    }
-
-    fn name(&self) -> &'static str {
-        "Search"
-    }
-
-    fn desc(&self) -> &'static str {
-        "Search text with ripgrep"
-    }
-
+impl crate::tool::Tool for Search {
+    fn id(&self) -> &'static str { "search" }
+    fn name(&self) -> &'static str { "Search" }
+    fn desc(&self) -> &'static str { "Search text with ripgrep" }
     fn schema(&self) -> Value {
-        json!({
+        serde_json::json!({
             "type": "object",
             "properties": {
-                "pattern": {
-                    "type": "string",
-                    "description": "Search pattern"
-                },
-                "path": {
-                    "type": "string",
-                    "description": "Optional workspace path"
-                }
+                "pattern": {"type": "string", "description": "Search pattern"},
+                "path": {"type": "string", "description": "Optional workspace path"}
             },
             "required": ["pattern"]
         })
     }
-
+    fn requires(&self) -> bool { false }
     fn execute(&self, input: Value) -> Result<Value, String> {
-        let pattern = pattern(&input)?;
-        let base = base(input)?;
-        let root = root()?;
-        let base = resolve(base, &root)?;
-        let matches = run(pattern.clone(), &base, &self.config)?;
-
-        Ok(json!({
-            "pattern": pattern,
-            "path": base.display().to_string(),
-            "matches": matches
-        }))
-    }
-}
-
-fn pattern(input: &Value) -> Result<String, String> {
-    let Some(value) = input.get("pattern") else {
-        return Err("missing pattern".to_string());
-    };
-
-    let Some(value) = value.as_str() else {
-        return Err("pattern must be string".to_string());
-    };
-
-    if value.trim().is_empty() {
-        return Err("pattern is empty".to_string());
-    }
-
-    Ok(value.trim().to_string())
-}
-
-fn base(input: Value) -> Result<PathBuf, String> {
-    let Some(value) = input.get("path") else {
-        return Ok(PathBuf::new());
-    };
-
-    let Some(value) = value.as_str() else {
-        return Err("path must be string".to_string());
-    };
-
-    Ok(PathBuf::from(value.trim()))
-}
-
-fn root() -> Result<PathBuf, String> {
-    std::env::current_dir().map_err(|e| e.to_string())
-}
-
-fn resolve(path: PathBuf, root: &Path) -> Result<PathBuf, String> {
-    let root = root.canonicalize().map_err(|e| e.to_string())?;
-    let target = if path.is_absolute() {
-        path
-    } else {
-        root.join(path)
-    };
-    let target = target.canonicalize().map_err(|e| e.to_string())?;
-
-    if !inside(&target, &root) {
-        return Err("path outside workspace".to_string());
-    }
-
-    Ok(target)
-}
-
-fn inside(target: &Path, root: &Path) -> bool {
-    target.starts_with(root)
-}
-
-fn run(pattern: String, base: &Path, config: &Config) -> Result<Value, String> {
-    let max_count = config.rg_max_count.to_string();
-    
-    let output = Command::new("rg")
-        .args([
-            "--json",
-            "--line-number",
-            "--max-count",
-            &max_count,
-            "--glob",
-            "!target/**",
-            "--glob",
-            "!node_modules/**",
-            "--glob",
-            "!.git/**",
-            "--glob",
-            "!dist/**",
-            "--",
-        ])
-        .arg(pattern)
-        .arg(base)
-        .output()
-        .map_err(|e| format!("ripgrep failed: {}", e))?;
-
-    if !output.status.success() && output.status.code() != Some(1) {
-        let stderr = String::from_utf8_lossy(&output.stderr).to_string();
-        return Err(format!("ripgrep failed: {}", stderr));
-    }
-
-    let text = String::from_utf8(output.stdout)
-        .map_err(|_| "ripgrep returned invalid utf8".to_string())?;
-    parse(text)
-}
-
-fn parse(text: String) -> Result<Value, String> {
-    let mut matches = Vec::new();
-
-    for line in text.lines() {
-        if line.trim().is_empty() {
-            continue;
+        let pattern = input.get("pattern").and_then(|v| v.as_str()).ok_or("missing pattern")?.trim().to_string();
+        if pattern.is_empty() { return Err("pattern is empty".into()); }
+        let base = input.get("path").and_then(|v| v.as_str()).map(|s| s.trim().to_string());
+        let root = std::env::current_dir().map_err(|e| e.to_string())?;
+        let base = if let Some(b) = base {
+            let p = std::path::PathBuf::from(b);
+            let target = if p.is_absolute() { p } else { root.join(p) };
+            target.canonicalize().map_err(|e| e.to_string())?
+        } else {
+            root.canonicalize().map_err(|e| e.to_string())?
+        };
+        let max_count = self.config.rg_max_count.to_string();
+        let output = std::process::Command::new("rg")
+            .args(["--json", "--line-number", "--max-count", &max_count, "--glob", "!target/**", "--glob", "!node_modules/**", "--glob", "!.git/**", "--glob", "!dist/**", "--"])
+            .arg(&pattern)
+            .arg(&base)
+            .output()
+            .map_err(|e| format!("ripgrep failed: {}", e))?;
+        if !output.status.success() && output.status.code() != Some(1) {
+            return Err(format!("ripgrep failed: {}", String::from_utf8_lossy(&output.stderr)));
         }
-
-        let line: Value =
-            serde_json::from_str(line).map_err(|e| format!("ripgrep json parse failed: {}", e))?;
-
-        if line.get("type").and_then(Value::as_str) != Some("match") {
-            continue;
+        let text = String::from_utf8(output.stdout).map_err(|_| "ripgrep returned invalid utf8")?;
+        let mut matches = Vec::new();
+        for line in text.lines() {
+            if line.trim().is_empty() { continue; }
+            let line: Value = serde_json::from_str(line).map_err(|e| format!("ripgrep json parse failed: {}", e))?;
+            if line.get("type").and_then(|t| t.as_str()) != Some("match") { continue; }
+            let data = line.get("data").ok_or("missing ripgrep data")?;
+            let path = data.get("path").and_then(|p| p.get("text")).and_then(|t| t.as_str()).unwrap_or("");
+            let text = data.get("lines").and_then(|l| l.get("text")).and_then(|t| t.as_str()).unwrap_or("");
+            let line = data.get("line_number").and_then(|n| n.as_u64()).unwrap_or(0);
+            matches.push(serde_json::json!({"path": path, "line": line, "text": text}));
         }
-
-        let data = line
-            .get("data")
-            .ok_or_else(|| "missing ripgrep data".to_string())?;
-        let path = data
-            .get("path")
-            .and_then(|path| path.get("text"))
-            .and_then(Value::as_str)
-            .unwrap_or("");
-        let text = data
-            .get("lines")
-            .and_then(|lines| lines.get("text"))
-            .and_then(Value::as_str)
-            .unwrap_or("");
-        let line = data.get("line_number").and_then(Value::as_u64).unwrap_or(0);
-
-        matches.push(json!({
-            "path": path,
-            "line": line,
-            "text": text
-        }));
+        Ok(serde_json::json!({"pattern": pattern, "path": base.display().to_string(), "matches": matches}))
     }
+}
 
-    Ok(Value::Array(matches))
+impl Search {
+    pub fn execute_search(pattern: &str, base: &str, config: &Config) -> Result<Value, String> {
+        let max_count = config.rg_max_count.to_string();
+        let output = std::process::Command::new("rg")
+            .args(["--json", "--line-number", "--max-count", &max_count, "--glob", "!target/**", "--glob", "!node_modules/**", "--glob", "!.git/**", "--glob", "!dist/**", "--"])
+            .arg(pattern)
+            .arg(base)
+            .output()
+            .map_err(|e| format!("ripgrep failed: {}", e))?;
+        if !output.status.success() && output.status.code() != Some(1) {
+            return Err(format!("ripgrep failed: {}", String::from_utf8_lossy(&output.stderr)));
+        }
+        let text = String::from_utf8(output.stdout).map_err(|_| "ripgrep returned invalid utf8")?;
+        let mut matches = Vec::new();
+        for line in text.lines() {
+            if line.trim().is_empty() { continue; }
+            let line: Value = serde_json::from_str(line).map_err(|e| format!("ripgrep json parse failed: {}", e))?;
+            if line.get("type").and_then(|t| t.as_str()) != Some("match") { continue; }
+            let data = line.get("data").ok_or("missing ripgrep data")?;
+            let path = data.get("path").and_then(|p| p.get("text")).and_then(|t| t.as_str()).unwrap_or("");
+            let text = data.get("lines").and_then(|l| l.get("text")).and_then(|t| t.as_str()).unwrap_or("");
+            let line = data.get("line_number").and_then(|n| n.as_u64()).unwrap_or(0);
+            matches.push(serde_json::json!({"path": path, "line": line, "text": text}));
+        }
+        Ok(serde_json::json!({"pattern": pattern, "path": base, "matches": matches}))
+    }
 }
 
 #[cfg(test)]
