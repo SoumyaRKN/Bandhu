@@ -38,7 +38,7 @@ Build a local-first VS Code coding AI agent (Bandhu) that runs mostly free, work
 | 12 | Verify Ollama | Run `ollama --version` to confirm installation | `Completed` |
 | 13 | Pull Coding Model | Run `ollama pull qwen2.5-coder:7b` | `Completed` |
 | 14 | Test Ollama | Run `ollama run qwen2.5-coder:7b` and verify model responds | `Completed` |
-| 15 | Configure Ollama | Set Ollama to allow localhost connections, configure host and port if needed | `Pending` |
+| 15 | Configure Ollama | Set Ollama to allow localhost connections, configure host and port if needed | `Completed` |
 
 ---
 
@@ -69,7 +69,7 @@ Build a local-first VS Code coding AI agent (Bandhu) that runs mostly free, work
 | 29 | Configure Extension Manifest | Update `extension.ts` or main entry point with basic activation logic | `Completed` |
 | 30 | Add Launch Configuration | Ensure `.vscode/launch.json` is properly configured for debugging | `Completed` |
 | 31 | Test Extension Launch | Press F5 to launch new Extension Development Host window | `Pending` |
-| 32 | Add Status Bar Indicator | Add status bar item showing "Bandhu" when extension is active | `Pending` |
+| 32 | Add Status Bar Indicator | Add status bar item showing "Bandhu" when extension is active | `In Progress` |
 | 33 | Verify Extension Loads | Confirm extension activates in new VS Code window without errors | `Pending` |
 
 ---
@@ -80,12 +80,12 @@ Build a local-first VS Code coding AI agent (Bandhu) that runs mostly free, work
 |---|------|-------------|--------|
 | 34 | Initialize Rust Project | Navigate to backend directory and run `cargo init` | `Completed` |
 | 35 | Define Cargo Dependencies | Add required dependencies to `Cargo.toml` (axum, serde, tokio, reqwest, etc) | `Completed` |
-| 36 | Define API Structure | Design API endpoints for: receive task, accept prompt, return response, execute tool | `Pending` |
+| 36 | Define API Structure | Design API endpoints for: receive task, accept prompt, return response, execute tool | `Completed` |
 | 37 | Define Task Models | Create data structures for: Task, TaskRequest, TaskResponse, ToolCall | `Completed` |
-| 38 | Define Error Types | Create custom error types for backend service | `Pending` |
+| 38 | Define Error Types | Create custom error types (`BackendError` enum) for backend service | `Pending` |
 | 39 | Create API Server | Implement HTTP server using Axum framework | `Completed` |
-| 40 | Add CORS Middleware | Configure CORS to allow VS Code extension to communicate with backend | `Pending` |
-| 41 | Add Health Check Endpoint | Create `/health` endpoint for monitoring backend status | `Pending` |
+| 40 | Add CORS Middleware | Configure CORS in `main.rs` to allow VS Code extension origin | `Pending` |
+| 41 | Add Health Check Endpoint | Create `/health` endpoint for monitoring backend status | `Completed` |
 
 ---
 
@@ -93,13 +93,13 @@ Build a local-first VS Code coding AI agent (Bandhu) that runs mostly free, work
 
 | # | Task | Description | Status |
 |---|------|-------------|--------|
-| 42 | Define Ollama Client | Create client module for communicating with Ollama API | `Completed` |
-| 43 | Implement Generate Endpoint | Create `POST /api/generate` endpoint that accepts prompt and sends to Ollama | `Pending` |
-| 44 | Implement Chat Endpoint | Create `POST /api/chat` endpoint for multi-turn conversations | `Completed` |
-| 45 | Handle Streaming Responses | Implement streaming response handling for real-time token output | `Pending` |
-| 46 | Add Request Timeout | Configure timeout for Ollama API requests | `Pending` |
+| 42 | Define Ollama Client | Create `backend/src/model.rs` with `OllamaClient` struct for communicating with Ollama API | `Pending` |
+| 43 | Extract Model from Queue | Move `Model` struct and Ollama request/response types from `queue.rs` into `model.rs` | `Pending` |
+| 44 | Implement Generate Endpoint | Create `POST /api/generate` endpoint that accepts prompt and sends to Ollama | `Completed` (inside `/chat`) |
+| 45 | Implement Chat Endpoint | Create `POST /api/chat` endpoint for multi-turn conversations | `Completed` |
+| 46 | Add Request Timeout | Configure timeout for Ollama API requests in `reqwest::Client::builder()` | `Pending` |
 | 47 | Test End-to-End Flow | Verify: Extension → Backend → Ollama → Backend → Extension works end-to-end | `Pending` |
-| 48 | Add Error Handling | Handle Ollama connection errors, model not found, and timeout scenarios | `Pending` |
+| 48 | Add Error Handling | Handle Ollama connection errors, model not found, and timeout scenarios with typed errors | `Pending` |
 
 ---
 
@@ -107,14 +107,15 @@ Build a local-first VS Code coding AI agent (Bandhu) that runs mostly free, work
 
 | # | Task | Description | Status |
 |---|------|-------------|--------|
-| 49 | Define Tool Trait | Create base `Tool` trait with `id`, `name`, `description`, `input_schema`, `execute` method | `Completed` |
-| 50 | Implement ReadFile Tool | Create `ReadFile` tool: takes path, returns file content | `Pending` |
-| 51 | Implement Search Tool | Create `Search` tool: uses ripgrep to search text patterns | `Pending` |
-| 52 | Implement WriteFile Tool | Create `WriteFile` tool: writes content to file (requires approval) | `Pending` |
-| 53 | Implement RunCommand Tool | Create `RunCommand` tool: executes shell commands (requires approval) | `Pending` |
-| 54 | Add Tool Registry | Create tool registry to map tool IDs to implementations | `Completed` |
-| 55 | Add Tool Validation | Implement input schema validation for each tool | `Pending` |
-| 56 | Document Tool APIs | Write documentation for each tool's input/output format | `Pending` |
+| 49 | Define Tool Trait | Create base `Tool` trait with `id`, `name`, `desc`, `schema`, `execute`, `requires` method | `Completed` |
+| 50 | Implement ReadFile Tool | Create `Readfile` tool: takes path, returns file content | `Completed` |
+| 51 | Implement Search Tool | Create `Search` tool: uses ripgrep to search text patterns | `Completed` |
+| 52 | Implement WriteFile Tool | Create `Writefile` tool: writes content to file (requires approval) | `Completed` |
+| 53 | Implement RunCommand Tool | Create `Runcommand` tool: executes shell commands (requires approval) | `Completed` |
+| 54 | Implement ListDir Tool | Create `Listdir` tool: list directory entries | `In Progress` (has compile bug) |
+| 55 | Add Tool Registry | Create tool registry to map tool IDs to implementations | `Completed` |
+| 56 | Add Tool Validation | Implement JSON Schema validation for tool inputs before execution | `Pending` |
+| 57 | Document Tool APIs | Write documentation for each tool's input/output format | `Pending` |
 
 ---
 
@@ -122,14 +123,14 @@ Build a local-first VS Code coding AI agent (Bandhu) that runs mostly free, work
 
 | # | Task | Description | Status |
 |---|------|-------------|--------|
-| 57 | Design Tool Loop | Implement main loop: ask model → parse tool call → execute tool → return result → repeat | `Completed` |
-| 58 | Implement Loop Controller | Create controller that manages the tool call loop state | `Completed` |
-| 59 | Add Tool Selection Prompt | Configure system prompt to instruct model on available tools and how to call them | `Completed` |
-| 60 | Parse Tool Responses | Implement parser for model tool call responses (JSON format) | `Completed` |
-| 61 | Handle Tool Errors | Implement error handling for failed tool executions within the loop | `Completed` |
-| 62 | Implement Loop Termination | Define conditions to break the loop (task completed, error encountered, max iterations) | `Completed` |
-| 63 | Test Simple Tool Chain | Verify a simple sequence: ReadFile → Search → respond works correctly | `Pending` |
-| 64 | Add Loop Logging | Add structured logging for each iteration of the tool loop | `Pending` |
+| 58 | Design Tool Loop | Implement main loop: ask model → parse tool call → execute tool → return result → repeat | `Completed` |
+| 59 | Implement Loop Controller | Create controller that manages the tool call loop state | `Completed` |
+| 60 | Add Tool Selection Prompt | Configure system prompt to instruct model on available tools and how to call them | `Completed` |
+| 61 | Parse Tool Responses | Implement parser for model tool call responses (JSON format) | `Completed` |
+| 62 | Handle Tool Errors | Implement error handling for failed tool executions within the loop | `Completed` |
+| 63 | Implement Loop Termination | Define conditions to break the loop (task completed, error encountered, max iterations) | `Completed` |
+| 64 | Test Simple Tool Chain | Verify a simple sequence: ReadFile → Search → respond works correctly | `Pending` |
+| 65 | Add Loop Logging | Add structured logging for each iteration of the tool loop | `Pending` |
 
 ---
 
@@ -137,29 +138,29 @@ Build a local-first VS Code coding AI agent (Bandhu) that runs mostly free, work
 
 | # | Task | Description | Status |
 |---|------|-------------|--------|
-| 65 | Define Forbidden Commands | Maintain list of forbidden commands: `rm -rf /`, `sudo`, background execution | `Pending` |
-| 66 | Implement Command Filter | Add filter to block execution of dangerous commands | `Pending` |
-| 67 | Add File Edit Confirmation | Require user approval before WriteFile tool is executed | `Pending` |
-| 68 | Add Command Confirmation | Require user approval before RunCommand tool is executed | `Pending` |
-| 69 | Add Package Install Confirmation | Require confirmation before any package installation commands | `Pending` |
-| 70 | Implement Confirmation UI | Create VS Code webview or quick pick for showing tool actions and requesting confirmation | `Pending` |
-| 71 | Add Approval Logging | Log all approved and rejected tool executions for audit trail | `Pending` |
-| 72 | Test Safety Mechanisms | Manually verify dangerous commands are blocked and approvals work | `Pending` |
+| 66 | Define Forbidden Commands | Maintain list of forbidden commands: `rm -rf /`, `sudo`, background execution | `In Progress` |
+| 67 | Implement Command Filter | Add filter to block execution of dangerous commands in `gate.rs` | `Completed` |
+| 68 | Add File Edit Confirmation | Require user approval before WriteFile tool is executed | `Completed` |
+| 69 | Add Command Confirmation | Require user approval before RunCommand tool is executed | `Completed` |
+| 70 | Add Package Install Confirmation | Require confirmation before any package installation commands | `Pending` |
+| 71 | Implement Confirmation UI | Create VS Code webview or quick pick for showing tool actions and requesting confirmation | `In Progress` |
+| 72 | Add Approval Logging | Log all approved and rejected tool executions for audit trail | `Pending` |
+| 73 | Test Safety Mechanisms | Manually verify dangerous commands are blocked and approvals work end-to-end | `Pending` |
 
 ---
 
-## Phase 10: Improve Accuracy
+## Phase 10: Improve Accuracy (Context Builder)
 
 | # | Task | Description | Status |
 |---|------|-------------|--------|
-| 73 | Implement Context Builder | Create context builder that reads only relevant files instead of entire repo | `Pending` |
-| 74 | Build Symbol Map | Create tool to build symbol map (functions, classes, variables) from codebase | `Pending` |
-| 75 | Build Dependency Map | Create tool to map file dependencies and imports | `Pending` |
-| 76 | Create File Summarizer | Implement tool to generate summaries of large files for context | `Pending` |
-| 77 | Optimize Context Window | Implement strategy to fit most relevant context within model's context window | `Pending` |
-| 78 | Add Incremental Context | Support adding context incrementally across multiple tool calls | `Pending` |
-| 79 | Implement Rerank Strategy | Add strategy to rerank relevant files by task similarity | `Pending` |
-| 80 | Test Context Accuracy | Verify agent can solve tasks using context-only approach vs full repo | `Pending` |
+| 74 | Create Context Module | Create `backend/src/context.rs` module for context building pipeline | `Pending` |
+| 75 | Implement Search Stage | Extract relevant files by searching for keywords from task description | `Pending` |
+| 76 | Implement Select Stage | Rank candidate files by match score and file size | `Pending` |
+| 77 | Implement Summarize Stage | Generate summaries of large files for context | `Pending` |
+| 78 | Implement Pack Stage | Serialize selected context into model-readable blocks (path + content) | `Pending` |
+| 79 | Wire Context to Loop | Call context builder at start of each loop iteration in `queue.rs` | `Pending` |
+| 80 | Add Context Size Limit | Enforce ~8k token limit on context window | `Pending` |
+| 81 | Test Context Accuracy | Verify agent can solve tasks using context-only approach vs full repo | `Pending` |
 
 ---
 
@@ -167,59 +168,72 @@ Build a local-first VS Code coding AI agent (Bandhu) that runs mostly free, work
 
 | # | Task | Description | Status |
 |---|------|-------------|--------|
-| 81 | Implement Diff Generator | Create tool to generate unified diff patch from proposed changes | `Pending` |
-| 82 | Create Diff View | Implement VS Code webview or TextEditorContentProvider to show diffs | `Pending` |
-| 83 | Implement Apply Patch Tool | Create tool to apply diff patch to files after user approval | `Pending` |
-| 84 | Add Reject Workflow | Implement workflow to discard changes when user rejects diff | `Pending` |
-| 85 | Add Line-by-Line Approval | Support approving/rejecting individual change hunks within a diff | `Pending` |
-| 86 | Add Edit Suggestions | Allow user to manually edit proposed changes before applying | `Pending` |
-| 87 | Test Diff Workflow | End-to-end test: model proposes change → diff shown → user approves → changes applied | `Pending` |
-| 88 | Document Diff System | Write documentation for the diff approval workflow | `Pending` |
+| 82 | Implement Diff Generator | Create tool to generate unified diff patch from proposed file changes | `Pending` |
+| 83 | Modify WriteFile Tool | Change `Writefile` to produce diff patch instead of direct write | `Pending` |
+| 84 | Create Diff View UI | Implement VS Code webview panel to display unified diffs | `Pending` |
+| 85 | Add Apply Patch Tool | Create backend tool to apply diff patch after user approval | `Pending` |
+| 86 | Add Reject Workflow | Implement workflow to discard changes when user rejects diff | `Pending` |
+| 87 | Add Line-by-Line Approval | Support approving/rejecting individual change hunks within a diff | `Pending` |
+| 88 | Add Edit Suggestions | Allow user to manually edit proposed changes before applying | `Pending` |
+| 89 | Test Diff Workflow | End-to-end test: model proposes change → diff shown → user approves → changes applied | `Pending` |
+| 90 | Document Diff System | Write documentation for the diff approval workflow | `Pending` |
 
 ---
 
-## Phase 12: Add Testing Loop
-
-| # | Task | Description | Status |
----|---|------|-------------|--------|
-| 89 | Implement Build Tool | Create tool to run project build commands (cargo build, npm run build, etc) | `Pending` |
-| 90 | Implement Test Runner | Create tool to run project tests and capture output | `Pending` |
-| 91 | Add Build Loop | Implement loop that runs build after code edits to verify compilation | `Pending` |
-| 92 | Add Test Loop | Implement loop that runs tests after build succeeds | `Pending` |
-| 93 | Implement Fix Loop | Implement loop: build fails → send errors to model → fix → rebuild until success | `Pending` |
-| 94 | Parse Test Output | Create parser to extract test failures and error messages for the model | `Pending` |
-| 95 | Add Test Result Reporting | Display build and test results to user in VS Code output channel | `Pending` |
-| 96 | Test Full Testing Loop | Verify complete loop: edit → build → test → fix works for sample project | `Pending` |
-
----
-
-## Phase 13: Improve Speed
+## Phase 12: Extension Approval Integration
 
 | # | Task | Description | Status |
 |---|------|-------------|--------|
-| 97 | Profile Context Generation | Measure time spent on context generation and identify bottlenecks | `Pending` |
-| 98 | Optimize File Reads | Implement batch file reads and caching for repeated access | `Pending` |
-| 99 | Reduce Context Size | Implement strategies to reduce context size (summaries, selective inclusion) | `Pending` |
-| 100 | Optimize Model Calls | Reduce number of model calls via better tool selection and batched requests | `Pending` |
-| 101 | Add Response Caching | Cache common query responses to avoid redundant model calls | `Pending` |
-| 102 | Implement Parallel Tool Execution | Add support for parallel tool execution in the loop when tools are independent | `Pending` |
-| 103 | Profile End-to-End Performance | Measure and document typical task completion times | `Pending` |
-| 104 | Document Optimizations | Write performance optimization guidelines and best practices | `Pending` |
+| 91 | Fix Approval Flow in Controller | Wire `handleMessage` to webview; send `tool_approval` messages to webview panel | `Pending` |
+| 92 | Add Webview Approval JS | Add JavaScript in webview HTML to receive approval messages and show UI buttons | `Pending` |
+| 93 | Replace InputBox with Chat UI | Replace `vscode.window.showInputBox` with proper webview chat input | `Pending` |
+| 94 | Stream Responses Backend | Add SSE streaming support to `/chat` endpoint | `Pending` |
+| 95 | Stream Responses Extension | Update extension to consume SSE stream and render tokens incrementally | `Pending` |
+| 96 | Add Request Cancellation | Support cancelling in-flight requests when user sends new input | `Pending` |
 
 ---
 
-## Phase 14: Future Improvements
+## Phase 13: Add Testing Loop
 
 | # | Task | Description | Status |
 |---|------|-------------|--------|
-| 105 | Add Git Integration | Implement tool for git operations: status, diff, log, blame | `Pending` |
-| 106 | Implement Planning System | Add planning module for complex multi-step tasks | `Pending` |
-| 107 | Add Memory System | Implement short-term and long-term memory for conversation context | `Pending` |
-| 108 | Add Multi-Project Support | Enable agent to work across multiple related projects | `Pending` |
-| 109 | Add Embeddings | Implement embeddings for semantic code search | `Pending` |
-| 110 | Integrate Vector DB | Set up local vector database for codebase embeddings and semantic search | `Pending` |
-| 111 | Add Streaming UI | Implement real-time streaming of model responses in VS Code | `Pending` |
-| 112 | Add Multi-Model Support | Support switching between different local models | `Pending` |
+| 97 | Implement Build Tool | Create tool to run project build commands (cargo build, npm run build, etc) | `Pending` |
+| 98 | Implement Test Runner | Create tool to run project tests and capture output | `Pending` |
+| 99 | Add Build Loop | Implement loop that runs build after code edits to verify compilation | `Pending` |
+| 100 | Add Test Loop | Implement loop that runs tests after build succeeds | `Pending` |
+| 101 | Implement Fix Loop | Implement loop: build fails → send errors to model → fix → rebuild until success | `Pending` |
+| 102 | Parse Test Output | Create parser to extract test failures and error messages for the model | `Pending` |
+| 103 | Add Test Result Reporting | Display build and test results to user in VS Code output channel | `Pending` |
+| 104 | Test Full Testing Loop | Verify complete loop: edit → build → test → fix works for sample project | `Pending` |
+
+---
+
+## Phase 14: Improve Speed
+
+| # | Task | Description | Status |
+|---|------|-------------|--------|
+| 105 | Profile Context Generation | Measure time spent on context generation and identify bottlenecks | `Pending` |
+| 106 | Optimize File Reads | Implement batch file reads and caching for repeated access | `Pending` |
+| 107 | Reduce Context Size | Implement strategies to reduce context size (summaries, selective inclusion) | `Pending` |
+| 108 | Optimize Model Calls | Reduce number of model calls via better tool selection and batched requests | `Pending` |
+| 109 | Add Response Caching | Cache common query responses to avoid redundant model calls | `Pending` |
+| 110 | Implement Parallel Tool Execution | Add support for parallel tool execution in the loop when tools are independent | `Pending` |
+| 111 | Profile End-to-End Performance | Measure and document typical task completion times | `Pending` |
+| 112 | Document Optimizations | Write performance optimization guidelines and best practices | `Pending` |
+
+---
+
+## Phase 15: Future Improvements
+
+| # | Task | Description | Status |
+|---|------|-------------|--------|
+| 113 | Add Git Integration | Implement tool for git operations: status, diff, log, blame | `Pending` |
+| 114 | Implement Planning System | Add planning module for complex multi-step tasks | `Pending` |
+| 115 | Add Memory System | Implement short-term and long-term memory for conversation context | `Pending` |
+| 116 | Add Multi-Project Support | Enable agent to work across multiple related projects | `Pending` |
+| 117 | Add Embeddings | Implement embeddings for semantic code search | `Pending` |
+| 118 | Integrate Vector DB | Set up local vector database for codebase embeddings and semantic search | `Pending` |
+| 119 | Add Multi-Model Support | Support switching between different local models | `Pending` |
 
 ---
 
@@ -227,29 +241,29 @@ Build a local-first VS Code coding AI agent (Bandhu) that runs mostly free, work
 
 | # | Task | Description | Status |
 |---|------|-------------|--------|
-| 113 | Rename Files | Apply single-word naming convention to all files and directories | `Pending` |
-| 114 | Rename Functions | Apply single-word naming convention to all functions and methods | `Pending` |
-| 115 | Rename Variables | Apply single-word naming convention to all variables | `Pending` |
-| 116 | Run Formatter | Configure and run formatter (rustfmt for Rust, prettier for TypeScript/JS) on all code | `Pending` |
-| 117 | Run Linter | Configure and run linter (clippy for Rust, eslint for TypeScript/JS) and fix issues | `Pending` |
-| 118 | Type Check | Run type checker (tsc for TypeScript, cargo check for Rust) and fix type errors | `Pending` |
-| 119 | Format Markdown | Format all markdown files (`README.md`, `brain.md`, `ROADMAP.md`, docs) with consistent style | `Pending` |
-| 120 | Update README | Keep README.md up-to-date with setup instructions, usage examples, and feature status | `Pending` |
-| 121 | Write API Docs | Document all API endpoints, request/response formats, and error codes | `Pending` |
-| 122 | Write Tool Docs | Document all implemented tools with examples and usage guidelines | `Pending` |
-| 123 | Write User Guide | Write comprehensive user guide for installing, configuring, and using Bandhu | `Pending` |
-| 124 | Write Developer Guide | Write developer guide for contributing, building, testing, and extending Bandhu | `Pending` |
-| 125 | Add Code Comments | Add descriptive comments to complex logic and public APIs | `Pending` |
-| 126 | Create CHANGELOG | Initialize CHANGELOG.md with version history and release notes | `Pending` |
-| 127 | Clean Up Experiments | Review `experiments/` directory, archive or delete obsolete experiments | `Pending` |
-| 128 | Clean Up Scripts | Review `scripts/` directory, remove unused scripts, document remaining ones | `Pending` |
-| 129 | Clean Up Temporary Files | Remove temporary files, build artifacts, debug logs, and caches from repo | `Pending` |
-| 130 | Organize Docs Structure | Organize `docs/` directory with clear subdirectories (api, tools, guides, etc) | `Pending` |
-| 131 | Git Add Configuration | Verify `.gitignore` covers all build artifacts and sensitive files | `Pending` |
-| 132 | Git Commit Structure | Verify commit history is clean and project is ready for version control | `Pending` |
-| 133 | Add Git Hooks | Set up pre-commit hooks for formatting, linting, and type checking | `Pending` |
-| 134 | Create CI Config | Set up CI pipeline (GitHub Actions or similar) for lint, type check, and test | `Pending` |
-| 135 | Review Security | Audit code for security issues: no hardcoded secrets, safe command execution, input validation | `Pending` |
+| 120 | Rename Files | Apply single-word naming convention to all files and directories | `Pending` |
+| 121 | Rename Functions | Apply single-word naming convention to all functions and methods | `Pending` |
+| 122 | Rename Variables | Apply single-word naming convention to all variables | `Pending` |
+| 123 | Run Formatter | Configure and run formatter (rustfmt for Rust, prettier for TypeScript/JS) on all code | `Pending` |
+| 124 | Run Linter | Configure and run linter (clippy for Rust, eslint for TypeScript/JS) and fix issues | `Pending` |
+| 125 | Type Check | Run type checker (tsc for TypeScript, cargo check for Rust) and fix type errors | `Pending` |
+| 126 | Format Markdown | Format all markdown files (`README.md`, `ARCHITECTURE.md`, `ROADMAP.md`, docs) with consistent style | `Pending` |
+| 127 | Update README | Keep README.md up-to-date with setup instructions, usage examples, and feature status | `Pending` |
+| 128 | Write API Docs | Document all API endpoints, request/response formats, and error codes | `Pending` |
+| 129 | Write Tool Docs | Document all implemented tools with examples and usage guidelines | `Pending` |
+| 130 | Write User Guide | Write comprehensive user guide for installing, configuring, and using Bandhu | `Pending` |
+| 131 | Write Developer Guide | Write developer guide for contributing, building, testing, and extending Bandhu | `Pending` |
+| 132 | Add Code Comments | Add descriptive comments to complex logic and public APIs (avoiding over-commenting) | `Pending` |
+| 133 | Create CHANGELOG | Initialize CHANGELOG.md with version history and release notes | `Pending` |
+| 134 | Clean Up Experiments | Review `experiments/` directory, archive or delete obsolete experiments | `Pending` |
+| 135 | Clean Up Scripts | Review `scripts/` directory, remove unused scripts, document remaining ones | `Pending` |
+| 136 | Clean Up Temporary Files | Remove temporary files, build artifacts, debug logs, and caches from repo | `Pending` |
+| 137 | Organize Docs Structure | Organize `docs/` directory with clear subdirectories (api, tools, guides, etc) | `Pending` |
+| 138 | Git Add Configuration | Verify `.gitignore` covers all build artifacts and sensitive files | `Pending` |
+| 139 | Git Commit Structure | Verify commit history is clean and project is ready for version control | `Pending` |
+| 140 | Add Git Hooks | Set up pre-commit hooks for formatting, linting, and type checking | `Pending` |
+| 141 | Create CI Config | Set up CI pipeline (GitHub Actions or similar) for lint, type check, build, and test | `Pending` |
+| 142 | Review Security | Audit code for security issues: no hardcoded secrets, safe command execution, input validation, path traversal | `Pending` |
 
 ---
 
@@ -259,12 +273,13 @@ Build a local-first VS Code coding AI agent (Bandhu) that runs mostly free, work
 |------|-----------|-----------|
 | 1 | Environment + Models | #4-#15 (Phase 1 + Phase 2) |
 | 2 | VS Code Extension | #16-#33 (Phase 3 + Phase 4) |
-| 3 | Backend + Tools | #34-#56 (Phase 5 + Phase 6 + Phase 7) |
-| 4 | Tool Calling Loop | #57-#64 (Phase 8) |
-| 5 | Approval System | #65-#72 (Phase 9) |
-| 6 | Testing + Improvements | #73-#88 (Phase 10 + Phase 11 + Phase 12) |
-| 7 | Performance + Polish | #89-#104 (Phase 13) |
-| 8 | Future + Documentation | #105-#135 (Phase 14 + General Tasks) |
+| 3 | Backend + Tools | #34-#57 (Phase 5 + Phase 6 + Phase 7) |
+| 4 | Tool Calling Loop | #58-#65 (Phase 8) |
+| 5 | Approval System | #66-#73 (Phase 9) |
+| 6 | Context + Extension Approval | #74-#90 (Phase 10 + Phase 11 + Phase 12) |
+| 7 | Testing Loop | #91-#104 (Phase 13) |
+| 8 | Performance + Polish | #105-#112 (Phase 14) |
+| 9 | Future + Documentation | #113-#142 (Phase 15 + General Tasks) |
 
 ---
 
@@ -277,9 +292,9 @@ Build a local-first VS Code coding AI agent (Bandhu) that runs mostly free, work
 5. Search (#51)
 6. Edit files (#52) with approval
 7. Run commands (#53) with approval
-8. Diff approval (#81-#88)
-9. Tests (#89-#96)
-10. Better context (#73-#80)
+8. Diff approval (#82-#90)
+9. Tests (#97-#104)
+10. Better context (#74-#81)
 
 ---
 
@@ -291,3 +306,24 @@ Build a local-first VS Code coding AI agent (Bandhu) that runs mostly free, work
 | `In Progress` | Currently being worked on |
 | `Completed` | Finished and verified |
 | `Blocked` | Waiting on dependency or external factor |
+
+---
+
+## Outstanding Issues Requiring Immediate Attention
+
+These are high-priority items discovered during the audit that block further development:
+
+| Priority | Issue | Location | Action Required |
+|----------|-------|----------|-----------------|
+| P0 | `listdir.rs` compile bug — uses `self.root` which doesn't exist | `backend/src/listdir.rs` | Add `root: PathBuf` field to `Listdir` struct |
+| P0 | `controller.ts` imports nonexistent `showApproval` from `api.ts` | `bandhu/src/controller.ts:4` | Implement approval bridge in `api.ts` or fix import |
+| P0 | No `README.md` at project root | Project root | Create README.md |
+| P1 | Ollama client is inline in `queue.rs` instead of `model.rs` | `backend/src/queue.rs:219` | Extract into `backend/src/model.rs` |
+| P1 | No `context.rs` module for context pipeline | Missing file | Create `backend/src/context.rs` |
+| P1 | `writefile` overwrites directly — no diff/patch system | `backend/src/writefile.rs` | Implement diff generation and patch application |
+| P1 | No `BackendError` enum — errors are bare `String`s | Throughout backend | Create typed error enum |
+| P1 | No JSON Schema validation on tool inputs | `backend/src/tool.rs` | Add `validate(input) -> Result<()>` to `Tool` trait |
+| P2 | Extension routing types mismatch — `types.ts` `id` field vs backend `request_id` | `bandhu/src/types.ts`, `backend/src/queue.rs` | Align field names |
+| P2 | Chat webview has no JS to render messages dynamically | `bandhu/src/chatui.ts` | Add `<script>` block with message handler |
+| P2 | No streaming support for `/chat` | `backend/src/main.rs`, `bandhu/src/api.ts` | Implement SSE streaming |
+| P2 | `gate.rs` does package install detection only via broad command filter | `backend/src/gate.rs` | Add specific package manager pattern matching |
