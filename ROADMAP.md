@@ -112,7 +112,7 @@ Build a local-first VS Code coding AI agent (Bandhu) that runs mostly free, work
 | 51 | Implement Search Tool | Create `Search` tool: uses ripgrep to search text patterns | `Completed` |
 | 52 | Implement WriteFile Tool | Create `Writefile` tool: writes content to file (requires approval) | `Completed` |
 | 53 | Implement RunCommand Tool | Create `Runcommand` tool: executes shell commands (requires approval) | `Completed` |
-| 54 | Implement ListDir Tool | Create `Listdir` tool: list directory entries | `In Progress` (has compile bug) |
+| 54 | Implement ListDir Tool | Create `Listdir` tool: list directory entries | `Completed` |
 | 55 | Add Tool Registry | Create tool registry to map tool IDs to implementations | `Completed` |
 | 56 | Add Tool Validation | Implement JSON Schema validation for tool inputs before execution | `Pending` |
 | 57 | Document Tool APIs | Write documentation for each tool's input/output format | `Pending` |
@@ -315,8 +315,8 @@ These are high-priority items discovered during the audit that block further dev
 
 | Priority | Issue | Location | Action Required |
 |----------|-------|----------|-----------------|
-| P0 | `listdir.rs` compile bug — uses `self.root` which doesn't exist | `backend/src/listdir.rs` | Add `root: PathBuf` field to `Listdir` struct |
-| P0 | `controller.ts` imports nonexistent `showApproval` from `api.ts` | `bandhu/src/controller.ts:4` | Implement approval bridge in `api.ts` or fix import |
+| P0 | `listdir.rs` compile bug — uses `self.root` which doesn't exist | `backend/src/listdir.rs` | Fixed: removed struct field, use cwd |
+| P0 | `controller.ts` imports nonexistent `showApproval` from `api.ts` | `bandhu/src/controller.ts:4` | Fixed: import `showApproval` from `approval.ts` |
 | P0 | No `README.md` at project root | Project root | Create README.md |
 | P1 | Ollama client is inline in `queue.rs` instead of `model.rs` | `backend/src/queue.rs:219` | Extract into `backend/src/model.rs` |
 | P1 | No `context.rs` module for context pipeline | Missing file | Create `backend/src/context.rs` |

@@ -1,10 +1,11 @@
 import * as vscode from 'vscode';
 import { StatusBar } from './status';
 import { ChatPanel } from './chatui';
-import { sendChat, showApproval } from './api';
+import { sendChat } from './api';
+import { showApproval } from './approval';
 import { ChatMessage, ApprovalRequestMsg } from './types';
 
-class Controller implements vscode.Disposable {
+export class Controller implements vscode.Disposable {
     private status: StatusBar = new StatusBar();
     private chat: ChatPanel = new ChatPanel();
 
@@ -27,7 +28,7 @@ class Controller implements vscode.Disposable {
 
     async handleMessage(msg: ChatMessage) {
         if (msg.type === 'tool_approval') {
-            const req = msg as ApprovalRequestMsg;
+            const req = msg as unknown as ApprovalRequestMsg;
             await showApproval(req);
         }
         this.chat.append(msg);

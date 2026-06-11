@@ -10,8 +10,9 @@ export async function sendChat(prompt: string): Promise<ChatResponse> {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt } as ChatRequest),
     });
+    const data = await res.json() as ChatResponse;
     if (!res.ok) throw new Error(`chat failed: ${res.status}`);
-    return res.json();
+    return data;
 }
 
 export async function approve(req: ApprovalRequestMsg): Promise<boolean> {

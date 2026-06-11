@@ -1,4 +1,4 @@
-use crate::{config::Config, gate::Gate};
+use crate::{config::Config, gate::Gate, tool::Tool};
 use serde_json::Value;
 
 pub struct Search {

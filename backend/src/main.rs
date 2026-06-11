@@ -97,7 +97,7 @@ async fn chat_handler(
     State(state): State<AppState>,
     Json(payload): Json<ChatRequest>,
 ) -> Json<ChatResponse> {
-    let registry = state.registry.clone();
+    let registry = (*state.registry).clone();
     let config = Config::from_env();
     let gate = state.gate.clone();
     let pending = state.pending_approvals.clone();
