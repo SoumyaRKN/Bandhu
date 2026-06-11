@@ -313,7 +313,7 @@ experiments/             prototyping and benchmarks
 | ollama connection   | done    |
 | tool trait + registry | done    |
 | context builder     | todo    |
-| tool-call loop      | todo    |
+| tool-call loop      | done    |
 | safety filter       | todo    |
 | approval modal      | todo    |
 | diff approval       | todo    |

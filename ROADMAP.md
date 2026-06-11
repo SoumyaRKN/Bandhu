@@ -122,12 +122,12 @@ Build a local-first VS Code coding AI agent (Bandhu) that runs mostly free, work
 
 | # | Task | Description | Status |
 |---|------|-------------|--------|
-| 57 | Design Tool Loop | Implement main loop: ask model → parse tool call → execute tool → return result → repeat | `Pending` |
-| 58 | Implement Loop Controller | Create controller that manages the tool call loop state | `Pending` |
-| 59 | Add Tool Selection Prompt | Configure system prompt to instruct model on available tools and how to call them | `Pending` |
-| 60 | Parse Tool Responses | Implement parser for model tool call responses (JSON format) | `Pending` |
-| 61 | Handle Tool Errors | Implement error handling for failed tool executions within the loop | `Pending` |
-| 62 | Implement Loop Termination | Define conditions to break the loop (task completed, error encountered, max iterations) | `Pending` |
+| 57 | Design Tool Loop | Implement main loop: ask model → parse tool call → execute tool → return result → repeat | `Completed` |
+| 58 | Implement Loop Controller | Create controller that manages the tool call loop state | `Completed` |
+| 59 | Add Tool Selection Prompt | Configure system prompt to instruct model on available tools and how to call them | `Completed` |
+| 60 | Parse Tool Responses | Implement parser for model tool call responses (JSON format) | `Completed` |
+| 61 | Handle Tool Errors | Implement error handling for failed tool executions within the loop | `Completed` |
+| 62 | Implement Loop Termination | Define conditions to break the loop (task completed, error encountered, max iterations) | `Completed` |
 | 63 | Test Simple Tool Chain | Verify a simple sequence: ReadFile → Search → respond works correctly | `Pending` |
 | 64 | Add Loop Logging | Add structured logging for each iteration of the tool loop | `Pending` |
 
@@ -288,6 +288,6 @@ Build a local-first VS Code coding AI agent (Bandhu) that runs mostly free, work
 | Value | Meaning |
 |-------|---------|
 | `Pending` | Not yet started |
-| `Pending` | Currently being worked on |
+| `In Progress` | Currently being worked on |
 | `Completed` | Finished and verified |
-| `Pending` | Waiting on dependency or external factor |
+| `Blocked` | Waiting on dependency or external factor |
