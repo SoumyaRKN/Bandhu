@@ -1,19 +1,20 @@
+use crate::config::Config;
 use crate::registry::ToolRegistry;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
-pub const MAX_ITERATIONS: usize = 10;
-
 pub struct Loop {
     model: Model,
     registry: ToolRegistry,
+    config: Config,
 }
 
 impl Loop {
-    pub fn new(registry: ToolRegistry) -> Self {
+    pub fn new(registry: ToolRegistry, config: Config) -> Self {
         Self {
-            model: Model::new(),
+            model: Model::new(config.clone()),
             registry,
+            config,
         }
     }
 
@@ -23,8 +24,9 @@ impl Loop {
         
         let mut messages = vec![];
         let mut iterations = 0;
+        let max_iterations = self.config.max_iterations;
         
-        while iterations < MAX_ITERATIONS {
+        while iterations < max_iterations {
             iterations += 1;
             
             let full_prompt = self.build_prompt(&prompt, &context);
@@ -97,19 +99,18 @@ impl Loop {
         }).collect();
         
         let tools_str = serde_json::to_string_pretty(&tools_json).unwrap_or_else(|_| "[]".to_string());
+        let context_str = context_to_string(context);
         
-        format!(
-            r#"Available tools:
-{}
-
-Context:
-{}
-
-Task: {}"#,
-            tools_str,
-            context_to_string(context),
-            prompt
-        )
+        let template = std::env::var("BANDHU_PROMPT_TEMPLATE")
+            .unwrap_or_else(|_| {
+                "Available tools:\n{}\n\nContext:\n{}\n\nTask: {}".to_string()
+            });
+        
+        let mut result = template;
+        result = result.replacen("{}", &tools_str, 1);
+        result = result.replacen("{}", &context_str, 1);
+        result = result.replacen("{}", prompt, 1);
+        result
     }
     
     fn parse_tool_call(&self, output: &str) -> Option<ToolCall> {
@@ -132,23 +133,25 @@ struct ToolCall {
     input: Value,
 }
 
-struct Model;
+struct Model {
+    config: Config,
+}
 
 impl Model {
-    fn new() -> Self {
-        Self
+    fn new(config: Config) -> Self {
+        Self { config }
     }
     
-    async fn call(&self, model: String, prompt: String) -> String {
+    async fn call(&self, prompt: String) -> String {
         let client = reqwest::Client::new();
         let request = OllamaRequest {
-            model,
+            model: self.config.ollama_model.clone(),
             prompt,
-            stream: false,
+            stream: self.config.ollama_stream,
         };
         
         match client
-            .post("http://localhost:11434/api/generate")
+            .post(self.config.ollama_api_url())
             .json(&request)
             .send()
             .await
@@ -214,7 +217,8 @@ mod tests {
     #[test]
     fn builds_prompt() {
         let registry = ToolRegistry::new();
-        let loop_handler = Loop::new(registry);
+        let config = Config::from_env();
+        let loop_handler = Loop::new(registry, config);
         
         let prompt = "test task";
         let context = Value::Null;
@@ -228,7 +232,8 @@ mod tests {
     #[test]
     fn parses_tool_call_json() {
         let registry = ToolRegistry::new();
-        let loop_handler = Loop::new(registry);
+        let config = Config::from_env();
+        let loop_handler = Loop::new(registry, config);
         
         let output = r#"{"tool": "readfile", "input": {"path": "/test.rs"}}"#;
         
@@ -242,7 +247,8 @@ mod tests {
     #[test]
     fn rejects_non_json() {
         let registry = ToolRegistry::new();
-        let loop_handler = Loop::new(registry);
+        let config = Config::from_env();
+        let loop_handler = Loop::new(registry, config);
         
         let output = "just a regular response without tool call";
         

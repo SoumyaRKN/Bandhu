@@ -1,3 +1,4 @@
+use crate::config::Config;
 use crate::queue::Loop;
 use crate::readfile::Readfile;
 use crate::registry::ToolRegistry;
@@ -5,9 +6,9 @@ use crate::search::Search;
 use axum::{routing::post, Json, Router};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::net::SocketAddr;
 use std::sync::Arc;
 
+mod config;
 mod queue;
 mod readfile;
 mod registry;
@@ -25,8 +26,9 @@ struct ChatResponse {
 }
 
 async fn chat_handler(Json(payload): Json<ChatRequest>) -> Json<ChatResponse> {
-    let registry = tools();
-    let loop_handler = Loop::new(registry);
+    let config = Config::from_env();
+    let registry = tools(&config);
+    let loop_handler = Loop::new(registry, config);
     
     let request_value = serde_json::json!({
         "prompt": payload.prompt,
@@ -46,23 +48,24 @@ async fn chat_handler(Json(payload): Json<ChatRequest>) -> Json<ChatResponse> {
     })
 }
 
-fn tools() -> ToolRegistry {
+fn tools(config: &Config) -> ToolRegistry {
     let mut registry = ToolRegistry::new();
     
     registry.register(Arc::new(Readfile)).unwrap();
-    registry.register(Arc::new(Search)).unwrap();
+    registry.register(Arc::new(Search::new(config.clone()))).unwrap();
     
     registry
 }
 
 #[tokio::main]
 async fn main() {
-    let registry = tools();
+    let config = Config::from_env();
+    let registry = tools(&config);
     let app = Router::new()
         .with_state(registry)
         .route("/chat", post(chat_handler));
     
-    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
+    let addr = config.server_addr();
     println!("Bandhu backend listening on {}", addr);
     
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();

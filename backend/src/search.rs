@@ -1,9 +1,18 @@
+use crate::config::Config;
 use crate::tool::Tool;
 use serde_json::{json, Value};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-pub struct Search;
+pub struct Search {
+    config: Config,
+}
+
+impl Search {
+    pub fn new(config: Config) -> Self {
+        Self { config }
+    }
+}
 
 impl Tool for Search {
     fn id(&self) -> &'static str {
@@ -40,7 +49,7 @@ impl Tool for Search {
         let base = base(input)?;
         let root = root()?;
         let base = resolve(base, &root)?;
-        let matches = run(pattern.clone(), &base)?;
+        let matches = run(pattern.clone(), &base, &self.config)?;
 
         Ok(json!({
             "pattern": pattern,
@@ -102,13 +111,15 @@ fn inside(target: &Path, root: &Path) -> bool {
     target.starts_with(root)
 }
 
-fn run(pattern: String, base: &Path) -> Result<Value, String> {
+fn run(pattern: String, base: &Path, config: &Config) -> Result<Value, String> {
+    let max_count = config.rg_max_count.to_string();
+    
     let output = Command::new("rg")
         .args([
             "--json",
             "--line-number",
             "--max-count",
-            "50",
+            &max_count,
             "--glob",
             "!target/**",
             "--glob",
@@ -177,12 +188,14 @@ fn parse(text: String) -> Result<Value, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::config::Config;
     use serde_json::{json, Value};
     use std::fs;
 
     #[test]
     fn metadata() {
-        let tool = Search;
+        let config = Config::from_env();
+        let tool = Search::new(config);
 
         assert_eq!(tool.id(), "search");
         assert_eq!(tool.name(), "Search");
@@ -192,7 +205,8 @@ mod tests {
 
     #[test]
     fn schema() {
-        let tool = Search;
+        let config = Config::from_env();
+        let tool = Search::new(config);
         let schema = tool.schema();
 
         assert_eq!(schema.get("type").and_then(Value::as_str), Some("object"));
@@ -204,11 +218,12 @@ mod tests {
 
     #[test]
     fn searches() {
+        let config = Config::from_env();
         let root = std::env::current_dir().unwrap();
         let path = root.join("bandhusearchtest.txt");
         fs::write(&path, "needle").unwrap();
 
-        let result = Search
+        let result = Search::new(config)
             .execute(json!({ "pattern": "needle", "path": path.display().to_string() }))
             .unwrap();
 
@@ -227,14 +242,16 @@ mod tests {
 
     #[test]
     fn rejectsmissingpattern() {
-        let result = Search.execute(json!({}));
+        let config = Config::from_env();
+        let result = Search::new(config).execute(json!({}));
 
         assert!(result.is_err());
     }
 
     #[test]
     fn rejectsnonstringpattern() {
-        let result = Search.execute(json!({ "pattern": 1 }));
+        let config = Config::from_env();
+        let result = Search::new(config).execute(json!({ "pattern": 1 }));
 
         assert!(result.is_err());
     }
