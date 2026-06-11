@@ -1,6 +1,8 @@
 use crate::config::Config;
+use serde::Serialize;
 use std::path::PathBuf;
 
+#[derive(Debug, Clone, Serialize)]
 pub struct ContextItem {
     pub path: String,
     pub content: String,

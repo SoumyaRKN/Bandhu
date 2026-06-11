@@ -4,15 +4,25 @@
 
 Every `writefile` and `runcommand` execution goes through the **Approval Gate** before the safety filter permits execution.
 
+## UI Types
+
+The extension supports two approval UI modes:
+
+1. **Quick Pick Dialog** - Shows `vscode.window.showWarningMessage` with Approve/Reject buttons (used by `approval.ts`)
+2. **Webview Panel** - Inline approval buttons in the chat interface (primary method in `chatui.ts`)
+
 ## Sequence
 
 1. The model calls a tool that marks `requires == true`.
 2. The safety filter scans the tool input against forbidden commands and paths.
 3. If the input is blocked, the loop returns a `tool_error` message.
 4. If the input passes, the backend emits a `tool_approval` message.
-5. The extension shows an approval prompt to the user.
-6. The user accepts or rejects.
-7. The backend resumes or aborts execution based on the decision.
+5. The webview displays inline approval buttons (Approve/Reject) with tool details:
+   - Tool name and target path/command
+   - JSON representation of the input
+6. The user clicks Approve or Reject in the webview.
+7. The controller sends the decision to `/approve` endpoint.
+8. The backend resumes or aborts execution based on the decision.
 
 ## Safety Filter
 

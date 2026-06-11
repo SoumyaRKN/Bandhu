@@ -4,6 +4,14 @@ All configurable parameters are set via environment variables or a `.env` file i
 
 ---
 
+## Extension Settings
+
+| Variable | Default | Description |
+|---|---|---|
+| `BANDHU_BACKEND_URL` | `http://127.0.0.1:3000` | Backend HTTP endpoint for extension API calls. |
+
+---
+
 ## Server Settings
 
 | Variable | Default | Description |

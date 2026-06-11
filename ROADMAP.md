@@ -143,7 +143,7 @@ Build a local-first VS Code coding AI agent (Bandhu) that runs mostly free, work
 | 68 | Add File Edit Confirmation | Require user approval before WriteFile tool is executed | `Completed` |
 | 69 | Add Command Confirmation | Require user approval before RunCommand tool is executed | `Completed` |
 | 70 | Add Package Install Confirmation | Require confirmation before any package installation commands | `Pending` |
-| 71 | Implement Confirmation UI | Create VS Code webview or quick pick for showing tool actions and requesting confirmation | `In Progress` |
+| 71 | Implement Confirmation UI | Create VS Code webview or quick pick for showing tool actions and requesting confirmation | `Completed` |
 | 72 | Add Approval Logging | Log all approved and rejected tool executions for audit trail | `Pending` |
 | 73 | Test Safety Mechanisms | Manually verify dangerous commands are blocked and approvals work end-to-end | `Pending` |
 
@@ -326,11 +326,9 @@ These are high-priority items discovered during the audit that block further dev
 | P0 | `main.rs` missing `Arc` import | `backend/src/main.rs:1` | Add `use std::sync::Arc;` import | `Completed` |
 | P0 | No `README.md` at project root | Project root | Create README.md | `Completed` |
 | P1 | Ollama client is inline in `queue.rs` instead of `model.rs` | `backend/src/queue.rs:219` | Extract into `backend/src/model.rs` | `Pending` |
-| P1 | No `context.rs` module for context pipeline | Missing file | Create `backend/src/context.rs` | `Pending` |
 | P1 | `writefile` overwrites directly — no diff/patch system | `backend/src/writefile.rs` | Implement diff generation and patch application | `Pending` |
 | P1 | No `BackendError` enum — errors are bare `String`s | Throughout backend | Create typed error enum | `Pending` |
 | P1 | No JSON Schema validation on tool inputs | `backend/src/tool.rs` | Add `validate(input) -> Result<()>` to `Tool` trait | `Pending` |
 | P2 | Extension routing types mismatch — `types.ts` `id` field vs backend `request_id` | `bandhu/src/types.ts`, `backend/src/queue.rs` | Align field names | `Pending` |
-| P2 | Chat webview has no JS to render messages dynamically | `bandhu/src/chatui.ts` | Add `<script>` block with message handler | `Pending` |
 | P2 | No streaming support for `/chat` | `backend/src/main.rs`, `bandhu/src/api.ts` | Implement SSE streaming | `Pending` |
 | P2 | `gate.rs` does package install detection only via broad command filter | `backend/src/gate.rs` | Add specific package manager pattern matching | `Pending` |

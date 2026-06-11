@@ -36,7 +36,7 @@ __export(extension_exports, {
 module.exports = __toCommonJS(extension_exports);
 
 // src/controller.ts
-var vscode4 = __toESM(require("vscode"));
+var vscode3 = __toESM(require("vscode"));
 
 // src/status.ts
 var vscode = __toESM(require("vscode"));
@@ -68,7 +68,8 @@ var StatusBar = class {
 var vscode2 = __toESM(require("vscode"));
 var ChatPanel = class {
   panel;
-  disposables = [];
+  _onDidReceiveMessage = new vscode2.EventEmitter();
+  onDidReceiveMessage = this._onDidReceiveMessage.event;
   create(column = vscode2.ViewColumn.One) {
     if (this.panel) {
       this.panel.reveal(column);
@@ -81,24 +82,26 @@ var ChatPanel = class {
       { enableScripts: true }
     );
     this.panel.webview.html = this.getHtml();
+    this.panel.webview.onDidReceiveMessage((msg) => {
+      this._onDidReceiveMessage.fire(msg);
+    });
     this.panel.onDidDispose(() => {
       this.panel = void 0;
     });
-    this.disposables.push(this.panel);
   }
   append(msg) {
     if (!this.panel) return;
     this.panel.webview.postMessage({ type: "message", data: msg });
-    const type = msg.type;
-    const content = msg.content || msg.error || "";
-    this.panel.webview.html += `<div class="msg ${type}">${this.escapeHtml(content)}</div>`;
   }
   clear() {
     if (!this.panel) return;
     this.panel.webview.html = this.getHtml();
   }
   dispose() {
-    this.disposables.forEach((d) => d.dispose());
+    this._onDidReceiveMessage.dispose();
+    if (this.panel) {
+      this.panel.dispose();
+    }
   }
   escapeHtml(text) {
     return text.replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[m] || m);
@@ -111,16 +114,99 @@ var ChatPanel = class {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bandhu Chat</title>
     <style>
-        body { font-family: var(--vscode-font-family); padding: 10px; color: var(--vscode-foreground); background: var(--vscode-editor-background); }
-        .msg { padding: 6px 10px; margin: 4px 0; border-radius: 4px; }
+        body { font-family: var(--vscode-font-family); padding: 10px; color: var(--vscode-foreground); background: var(--vscode-editor-background); margin: 0; }
+        #messages { min-height: 200px; max-height: 600px; overflow-y: auto; padding: 8px; }
+        .msg { padding: 8px 12px; margin: 4px 0; border-radius: 4px; word-wrap: break-word; }
         .response { background: var(--vscode-editor-inactiveSelectionBackground); }
         .tool_result { background: var(--vscode-textBlockQuote-background); }
         .tool_error { background: var(--vscode-inputValidation-errorBackground); color: var(--vscode-errorForeground); }
-        .tool_approval { background: var(--vscode-inputValidation-infoBackground); }
+        .tool_approval { background: var(--vscode-inputValidation-infoBackground); border: 1px solid var(--vscode-inputValidation-infoBorder); padding: 12px; }
+        .error { background: var(--vscode-inputValidation-errorBackground); color: var(--vscode-errorForeground); }
+        .complete { background: var(--vscode-editor-snippetFinalTabstop-foreground); padding: 4px; }
+        .approval-buttons { margin-top: 8px; }
+        .approval-buttons button { margin-right: 8px; padding: 4px 12px; cursor: pointer; }
+        .input-box { margin-top: 12px; padding: 8px; display: flex; gap: 8px; }
+        .input-box input { flex: 1; padding: 6px; font-family: var(--vscode-font-family); font-size: 13px; }
+        .input-box button { padding: 6px 12px; cursor: pointer; }
+        .path-display { font-family: var(--vscode-editor-font-family); font-size: 12px; color: var(--vscode-textLink-foreground); margin: 4px 0; }
     </style>
 </head>
 <body>
     <div id="messages"></div>
+    <div class="input-box">
+        <input id="input" type="text" placeholder="Ask Bandhu..." autocomplete="off" />
+        <button id="send">Send</button>
+    </div>
+    <script>
+        const vscode = acquireVsCodeApi();
+        const messages = document.getElementById('messages');
+        const input = document.getElementById('input');
+        const sendBtn = document.getElementById('send');
+
+        function addMessage(type, content) {
+            const div = document.createElement('div');
+            div.className = 'msg ' + type;
+            div.textContent = content;
+            messages.appendChild(div);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function addApproval(id, tool, inputVal) {
+            const div = document.createElement('div');
+            div.className = 'msg tool_approval';
+            
+            const pathDisplay = document.createElement('div');
+            pathDisplay.className = 'path-display';
+            pathDisplay.textContent = tool + ': ' + (typeof inputVal === 'object' && inputVal !== null ? inputVal.path || inputVal.command : '');
+            div.appendChild(pathDisplay);
+
+            const contentPre = document.createElement('pre');
+            contentPre.style.fontSize = '12px';
+            contentPre.style.whiteSpace = 'pre-wrap';
+            contentPre.style.margin = '4px 0';
+            contentPre.textContent = JSON.stringify(inputVal, null, 2);
+            div.appendChild(contentPre);
+
+            const buttonsDiv = document.createElement('div');
+            buttonsDiv.className = 'approval-buttons';
+
+            const approveBtn = document.createElement('button');
+            approveBtn.textContent = 'Approve';
+            approveBtn.onclick = () => vscode.postMessage({ type: 'approve', id: id });
+            buttonsDiv.appendChild(approveBtn);
+
+            const rejectBtn = document.createElement('button');
+            rejectBtn.textContent = 'Reject';
+            rejectBtn.onclick = () => vscode.postMessage({ type: 'reject', id: id });
+            buttonsDiv.appendChild(rejectBtn);
+
+            div.appendChild(buttonsDiv);
+            messages.appendChild(div);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        window.addEventListener('message', event => {
+            const msg = event.data;
+            if (msg.type === 'message') {
+                const data = msg.data;
+                if (data.type === 'tool_approval') {
+                    addApproval(data.id, data.tool, data.input);
+                } else if (data.type === 'response' || data.type === 'tool_result' || data.type === 'tool_error' || data.type === 'error') {
+                    addMessage(data.type, data.content || data.error || '');
+                }
+            }
+        });
+
+        function sendMessage() {
+            const text = input.value.trim();
+            if (!text) return;
+            vscode.postMessage({ type: 'send', text: text });
+            input.value = '';
+        }
+
+        sendBtn.onclick = sendMessage;
+        input.onkeydown = e => { if (e.key === 'Enter') sendMessage(); };
+    </script>
 </body>
 </html>`;
   }
@@ -166,23 +252,6 @@ async function reject(req) {
   return res.ok;
 }
 
-// src/approval.ts
-var vscode3 = __toESM(require("vscode"));
-async function showApproval(req) {
-  const choice = await vscode3.window.showWarningMessage(
-    `Approve ${req.tool}?`,
-    { modal: true },
-    "Approve",
-    "Reject"
-  );
-  if (choice === "Approve") {
-    await approve(req);
-    return true;
-  }
-  await reject(req);
-  return false;
-}
-
 // src/controller.ts
 var Controller = class {
   constructor(ctx) {
@@ -194,22 +263,44 @@ var Controller = class {
   chat = new ChatPanel();
   async activate() {
     this.chat.create();
-    vscode4.commands.registerCommand("bandhu.helloWorld", () => this.chat.create());
-    vscode4.commands.registerCommand("bandhu.send", async () => {
-      const input = await vscode4.window.showInputBox({ prompt: "Ask Bandhu" });
+    const disposables = [];
+    disposables.push(vscode3.commands.registerCommand("bandhu.helloWorld", () => this.chat.create()));
+    disposables.push(vscode3.commands.registerCommand("bandhu.send", async () => {
+      const input = await vscode3.window.showInputBox({ prompt: "Ask Bandhu" });
       if (!input) return;
       this.status.setBusy();
-      const res = await sendChat(input);
-      this.status.setIdle();
-      this.chat.append({ type: "response", content: res.response });
-    });
-  }
-  async handleMessage(msg) {
-    if (msg.type === "tool_approval") {
-      const req = msg;
-      await showApproval(req);
+      try {
+        const res = await sendChat(input);
+        this.status.setIdle();
+        this.chat.append({ type: "response", content: res.response });
+      } catch (e) {
+        this.status.setError();
+        this.chat.append({ type: "error", error: String(e) });
+      }
+    }));
+    disposables.push(this.chat.onDidReceiveMessage((msg) => this.handleWebviewMsg(msg)));
+    for (const d of disposables) {
+      this.ctx.subscriptions.push(d);
     }
-    this.chat.append(msg);
+  }
+  async handleWebviewMsg(msg) {
+    if (msg.type === "send" && msg.text) {
+      this.status.setBusy();
+      try {
+        const res = await sendChat(msg.text);
+        this.status.setIdle();
+        this.chat.append({ type: "response", content: res.response });
+      } catch (e) {
+        this.status.setError();
+        this.chat.append({ type: "error", error: String(e) });
+      }
+    }
+    if (msg.type === "approve" && msg.id) {
+      await approve({ id: msg.id, tool: "", input: {} });
+    }
+    if (msg.type === "reject" && msg.id) {
+      await reject({ id: msg.id, tool: "", input: {} });
+    }
   }
   dispose() {
     this.status.dispose();

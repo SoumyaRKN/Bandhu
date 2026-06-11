@@ -307,15 +307,15 @@ experiments/             prototyping and benchmarks
 ## Open Work
 
 | area                | status  |
-|---------------------|---------|
-| extension scaffold  | done    |
-| backend scaffold    | done    |
-| ollama connection   | done    |
-| tool trait + registry | done    |
-| context builder     | todo    |
-| tool-call loop      | done    |
-| safety filter       | done    |
-| approval modal      | done    |
-| diff approval       | todo    |
-| test loop           | todo    |
-| P0 compile fixes    | done    |
+| --------------------- | -------------- |
+| extension scaffold    | done           |
+| backend scaffold      | done           |
+| ollama connection     | done           |
+| tool trait + registry | done           |
+| context builder       | done           |
+| tool-call loop        | done           |
+| safety filter         | done           |
+| approval modal        | done           |
+| diff approval         | todo           |
+| test loop             | todo           |
+| P0 compile fixes      | done           |
