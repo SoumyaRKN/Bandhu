@@ -1,4 +1,4 @@
-# Personal Coding AI Agent Project Guide - Bandhu
+# Personal Coding AI Agent Project Architecture - Bandhu
 
 ## Goal
 

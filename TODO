@@ -1,15 +1,6 @@
-Hi, Read following file which have project idea and high lavel plan.
-
-personal_coding_ai_agent_guide.md
-
-Then break each and every phases into small small tasks, for ex: Task: Make Directory - 'coading-agent', etc..., then generate a new file as "ROADMAP.md" and write down phase wize tasks and their description or what to do in them and task status.
+Hi, i need you to read and cross verify all the tasks from ROADMAP with the code base and update the task statuses which are completed and which are pending items.
 
 After this is done stop, we will continue later.
 
 Note:
-Folder structure and other files might be already created.
 Please follow single word nameing convention for files, folders, functions, variables and all other placess where can be.
-
-from them some phases like
-
-Phase 1 and Phase 2 are done, we need to continue with next phase squentially.
