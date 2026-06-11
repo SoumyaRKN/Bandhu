@@ -55,4 +55,37 @@ impl Tool for Runcommand {
             "status": output.status.code().unwrap_or(-1)
         }))
     }
+    fn validate(&self, input: &Value) -> Result<(), String> {
+        if !input.is_object() {
+            return Err("input must be object".into());
+        }
+        let Some(command) = input.get("command").and_then(|v| v.as_str()) else {
+            return Err("missing command".into());
+        };
+        if command.trim().is_empty() {
+            return Err("command is empty".into());
+        }
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn metadata() {
+        let tool = Runcommand::new(crate::config::Config::from_env());
+
+        assert_eq!(tool.id(), "runcommand");
+        assert_eq!(tool.name(), "Runcommand");
+        assert_eq!(tool.desc(), "Execute shell command");
+        assert!(tool.requires());
+    }
+
+    #[test]
+    fn rejects_empty_command() {
+        let tool = Runcommand::new(crate::config::Config::from_env());
+        assert!(tool.validate(&json!({"command": ""})).is_err());
+    }
 }

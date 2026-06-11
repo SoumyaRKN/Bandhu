@@ -1,12 +1,11 @@
-use crate::{config::Config, gate::Gate, tool::Tool};
 use serde_json::Value;
 
 pub struct Search {
-    config: Config,
+    config: crate::config::Config,
 }
 
 impl Search {
-    pub fn new(config: Config) -> Self {
+    pub fn new(config: crate::config::Config) -> Self {
         Self { config }
     }
 }
@@ -26,6 +25,18 @@ impl crate::tool::Tool for Search {
         })
     }
     fn requires(&self) -> bool { false }
+    fn validate(&self, input: &Value) -> Result<(), String> {
+        if !input.is_object() {
+            return Err("input must be object".into());
+        }
+        let Some(pattern) = input.get("pattern").and_then(|v| v.as_str()) else {
+            return Err("missing pattern".into());
+        };
+        if pattern.trim().is_empty() {
+            return Err("pattern is empty".into());
+        }
+        Ok(())
+    }
     fn execute(&self, input: Value) -> Result<Value, String> {
         let pattern = input.get("pattern").and_then(|v| v.as_str()).ok_or("missing pattern")?.trim().to_string();
         if pattern.is_empty() { return Err("pattern is empty".into()); }
@@ -65,7 +76,7 @@ impl crate::tool::Tool for Search {
 }
 
 impl Search {
-    pub fn execute_search(pattern: &str, base: &str, config: &Config) -> Result<Value, String> {
+    pub fn execute_search(pattern: &str, base: &str, config: &crate::config::Config) -> Result<Value, String> {
         let max_count = config.rg_max_count.to_string();
         let output = std::process::Command::new("rg")
             .args(["--json", "--line-number", "--max-count", &max_count, "--glob", "!target/**", "--glob", "!node_modules/**", "--glob", "!.git/**", "--glob", "!dist/**", "--"])
@@ -96,6 +107,7 @@ impl Search {
 mod tests {
     use super::*;
     use crate::config::Config;
+    use crate::tool::Tool;
     use serde_json::{json, Value};
     use std::fs;
 

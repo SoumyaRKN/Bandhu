@@ -13,6 +13,9 @@ pub struct Config {
     pub approval_timeout_secs: u64,
     pub forbidden_command_patterns: Vec<String>,
     pub forbidden_path_patterns: Vec<String>,
+    pub schema_validate: bool,
+    pub tool_input_limit: usize,
+    pub context_token_limit: usize,
 }
 
 impl Config {
@@ -61,6 +64,18 @@ impl Config {
                 .filter(|s| !s.trim().is_empty())
                 .map(|s| s.trim().to_string())
                 .collect(),
+            schema_validate: env::var("BANDHU_SCHEMA_VALIDATE")
+                .ok()
+                .map(|v| v == "true")
+                .unwrap_or(true),
+            tool_input_limit: env::var("BANDHU_TOOL_INPUT_LIMIT")
+                .ok()
+                .and_then(|v| v.parse().ok())
+                .unwrap_or(65536),
+            context_token_limit: env::var("BANDHU_CONTEXT_TOKEN_LIMIT")
+                .ok()
+                .and_then(|v| v.parse().ok())
+                .unwrap_or(8192),
         }
     }
 
@@ -73,6 +88,19 @@ impl Config {
 
     pub fn ollama_api_url(&self) -> String {
         format!("{}/api/generate", self.ollama_base_url.trim_end_matches('/'))
+    }
+
+    pub fn context_api_url(&self) -> String {
+        format!("{}/api/chat", self.ollama_base_url.trim_end_matches('/'))
+    }
+
+    pub fn size_limit(&self) -> usize {
+        self.tool_input_limit
+    }
+
+    #[allow(dead_code)]
+    pub fn token_cap(&self) -> usize {
+        self.context_token_limit
     }
 }
 

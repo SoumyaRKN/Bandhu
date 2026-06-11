@@ -1,5 +1,3 @@
-use std::net::SocketAddr;
-use std::sync::Arc;
 use axum::{
     extract::{State, Json},
     http::StatusCode,
@@ -8,6 +6,7 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use std::sync::Arc;
 use tokio::sync::{oneshot, RwLock};
 use std::collections::HashMap;
 

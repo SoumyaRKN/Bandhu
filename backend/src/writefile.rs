@@ -53,4 +53,44 @@ impl Tool for Writefile {
         fs::write(&path_buf, content).map_err(|e| e.to_string())?;
         Ok(json!({"path": path_buf.display().to_string(), "status": "written"}))
     }
+    fn validate(&self, input: &Value) -> Result<(), String> {
+        if !input.is_object() {
+            return Err("input must be object".into());
+        }
+        let Some(path) = input.get("path").and_then(|v| v.as_str()) else {
+            return Err("missing path".into());
+        };
+        if path.trim().is_empty() {
+            return Err("path is empty".into());
+        }
+        let Some(content) = input.get("content").and_then(|v| v.as_str()) else {
+            return Err("missing content".into());
+        };
+        if content.len() > 65536 {
+            return Err("content exceeds 65536 bytes".into());
+        }
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn metadata() {
+        let tool = Writefile::new(crate::config::Config::from_env());
+
+        assert_eq!(tool.id(), "writefile");
+        assert_eq!(tool.name(), "Writefile");
+        assert_eq!(tool.desc(), "Write or replace file content");
+        assert!(tool.requires());
+    }
+
+    #[test]
+    fn rejects_invalid() {
+        let tool = Writefile::new(crate::config::Config::from_env());
+        let bad = json!({"path": "", "content": ""});
+        assert!(tool.validate(&bad).is_err());
+    }
 }

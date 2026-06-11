@@ -1,5 +1,5 @@
+use serde_json::Value;
 use std::fs;
-use std::path::PathBuf;
 
 pub struct Listdir;
 
@@ -19,7 +19,7 @@ impl crate::tool::Tool for Listdir {
     fn desc(&self) -> &'static str {
         "List directory entries"
     }
-    fn schema(&self) -> serde_json::Value {
+    fn schema(&self) -> Value {
         serde_json::json!({
             "type": "object",
             "properties": {
@@ -31,7 +31,7 @@ impl crate::tool::Tool for Listdir {
     fn requires(&self) -> bool {
         false
     }
-    fn execute(&self, input: serde_json::Value) -> Result<serde_json::Value, String> {
+    fn execute(&self, input: Value) -> Result<Value, String> {
         let root = std::env::current_dir().map_err(|e| e.to_string())?;
         let target = if let Some(p) = input.get("path").and_then(|v| v.as_str()) {
             if p.is_empty() {
@@ -56,13 +56,15 @@ impl crate::tool::Tool for Listdir {
         }
         Ok(serde_json::json!({"path": target.display().to_string(), "entries": entries}))
     }
+    fn validate(&self, _input: &Value) -> Result<(), String> {
+        Ok(())
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::tool::Tool;
-    use serde_json::json;
 
     #[test]
     fn metadata() {

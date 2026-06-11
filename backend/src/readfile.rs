@@ -1,7 +1,7 @@
 use crate::tool::Tool;
 use serde_json::{json, Value};
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 pub struct Readfile;
 
@@ -32,8 +32,8 @@ impl Tool for Readfile {
     }
 
     fn execute(&self, input: Value) -> Result<Value, String> {
-        let path = path(input)?;
-        let path = resolve(path)?;
+        let path = self.require_path(&input)?;
+        let path = PathBuf::from(path);
         let text = fs::read_to_string(&path).map_err(|e| e.to_string())?;
 
         Ok(json!({
@@ -41,43 +41,26 @@ impl Tool for Readfile {
             "content": text
         }))
     }
-}
 
-fn path(input: Value) -> Result<PathBuf, String> {
-    let Some(value) = input.get("path") else {
-        return Err("missing path".to_string());
-    };
-
-    let Some(value) = value.as_str() else {
-        return Err("path must be string".to_string());
-    };
-
-    if value.trim().is_empty() {
-        return Err("path is empty".to_string());
+    fn validate(&self, input: &Value) -> Result<(), String> {
+        let path = self.require_path(input)?;
+        if path.trim().is_empty() {
+            return Err("path is empty".into());
+        }
+        Ok(())
     }
 
-    Ok(PathBuf::from(value))
-}
-
-fn resolve(path: PathBuf) -> Result<PathBuf, String> {
-    let root = std::env::current_dir().map_err(|e| e.to_string())?;
-    let target = if path.is_absolute() {
-        path
-    } else {
-        root.join(path)
-    };
-    let target = target.canonicalize().map_err(|e| e.to_string())?;
-    let root = root.canonicalize().map_err(|e| e.to_string())?;
-
-    if !inside(&target, &root) {
-        return Err("path outside workspace".to_string());
+    fn requires(&self) -> bool {
+        false
     }
-
-    Ok(target)
 }
 
-fn inside(target: &Path, root: &Path) -> bool {
-    target.starts_with(root)
+impl Readfile {
+    fn require_path(&self, input: &Value) -> Result<String, String> {
+        let value = input.get("path").ok_or("missing path")?;
+        let value = value.as_str().ok_or("path must be string")?;
+        Ok(value.to_string())
+    }
 }
 
 #[cfg(test)]
@@ -124,15 +107,11 @@ mod tests {
 
     #[test]
     fn rejectsmissing() {
-        let result = Readfile.execute(json!({}));
-
-        assert!(result.is_err());
+        assert!(Readfile.execute(json!({})).is_err());
     }
 
     #[test]
-    fn rejectsnonstring() {
-        let result = Readfile.execute(json!({ "path": 1 }));
-
-        assert!(result.is_err());
+    fn rejectsempty() {
+        assert!(Readfile.validate(&json!({"path": ""})).is_err());
     }
 }

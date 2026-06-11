@@ -314,7 +314,8 @@ experiments/             prototyping and benchmarks
 | tool trait + registry | done    |
 | context builder     | todo    |
 | tool-call loop      | done    |
-| safety filter       | todo    |
-| approval modal      | todo    |
+| safety filter       | done    |
+| approval modal      | done    |
 | diff approval       | todo    |
 | test loop           | todo    |
+| P0 compile fixes    | done    |

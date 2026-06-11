@@ -313,17 +313,24 @@ Build a local-first VS Code coding AI agent (Bandhu) that runs mostly free, work
 
 These are high-priority items discovered during the audit that block further development:
 
-| Priority | Issue | Location | Action Required |
-|----------|-------|----------|-----------------|
-| P0 | `listdir.rs` compile bug — uses `self.root` which doesn't exist | `backend/src/listdir.rs` | Fixed: removed struct field, use cwd |
-| P0 | `controller.ts` imports nonexistent `showApproval` from `api.ts` | `bandhu/src/controller.ts:4` | Fixed: import `showApproval` from `approval.ts` |
-| P0 | No `README.md` at project root | Project root | Create README.md |
-| P1 | Ollama client is inline in `queue.rs` instead of `model.rs` | `backend/src/queue.rs:219` | Extract into `backend/src/model.rs` |
-| P1 | No `context.rs` module for context pipeline | Missing file | Create `backend/src/context.rs` |
-| P1 | `writefile` overwrites directly — no diff/patch system | `backend/src/writefile.rs` | Implement diff generation and patch application |
-| P1 | No `BackendError` enum — errors are bare `String`s | Throughout backend | Create typed error enum |
-| P1 | No JSON Schema validation on tool inputs | `backend/src/tool.rs` | Add `validate(input) -> Result<()>` to `Tool` trait |
-| P2 | Extension routing types mismatch — `types.ts` `id` field vs backend `request_id` | `bandhu/src/types.ts`, `backend/src/queue.rs` | Align field names |
-| P2 | Chat webview has no JS to render messages dynamically | `bandhu/src/chatui.ts` | Add `<script>` block with message handler |
-| P2 | No streaming support for `/chat` | `backend/src/main.rs`, `bandhu/src/api.ts` | Implement SSE streaming |
-| P2 | `gate.rs` does package install detection only via broad command filter | `backend/src/gate.rs` | Add specific package manager pattern matching |
+| Priority | Issue | Location | Action Required | Status |
+|----------|-------|----------|-----------------|--------|
+| P0 | `listdir.rs` compile bug — missing `Value` import | `backend/src/listdir.rs:1` | Add `use serde_json::Value;` import | `Completed` |
+| P0 | `registry.rs` compile bug — missing `Value` import | `backend/src/registry.rs:2` | Add `use serde_json::Value;` import | `Completed` |
+| P0 | `writefile.rs` compile bug — missing `Gate` import | `backend/src/writefile.rs:1` | Add `use crate::gate::Gate;` import | `Completed` |
+| P0 | `readfile.rs` compile bug — wrong `PathBuf` import and missing `resolve` function | `backend/src/readfile.rs:3` | Fix import and use `PathBuf::from()` directly | `Completed` |
+| P0 | `search.rs` tests missing `Tool` trait import in module | `backend/src/search.rs:108` | Add `use crate::tool::Tool;` in test module | `Completed` |
+| P0 | `tool.rs` test using wrong `serde` types | `backend/src/tool.rs:18` | Use `serde_json::json!({})` instead of `serde::{Map, Value}` | `Completed` |
+| P0 | `registry.rs` test missing `validate` implementation | `backend/src/registry.rs:85` | Add `validate` method to Dummy struct | `Completed` |
+| P0 | `queue.rs` unused import | `backend/src/queue.rs:2` | Remove unused `ApprovalRequest` import | `Completed` |
+| P0 | `main.rs` missing `Arc` import | `backend/src/main.rs:1` | Add `use std::sync::Arc;` import | `Completed` |
+| P0 | No `README.md` at project root | Project root | Create README.md | `Completed` |
+| P1 | Ollama client is inline in `queue.rs` instead of `model.rs` | `backend/src/queue.rs:219` | Extract into `backend/src/model.rs` | `Pending` |
+| P1 | No `context.rs` module for context pipeline | Missing file | Create `backend/src/context.rs` | `Pending` |
+| P1 | `writefile` overwrites directly — no diff/patch system | `backend/src/writefile.rs` | Implement diff generation and patch application | `Pending` |
+| P1 | No `BackendError` enum — errors are bare `String`s | Throughout backend | Create typed error enum | `Pending` |
+| P1 | No JSON Schema validation on tool inputs | `backend/src/tool.rs` | Add `validate(input) -> Result<()>` to `Tool` trait | `Pending` |
+| P2 | Extension routing types mismatch — `types.ts` `id` field vs backend `request_id` | `bandhu/src/types.ts`, `backend/src/queue.rs` | Align field names | `Pending` |
+| P2 | Chat webview has no JS to render messages dynamically | `bandhu/src/chatui.ts` | Add `<script>` block with message handler | `Pending` |
+| P2 | No streaming support for `/chat` | `backend/src/main.rs`, `bandhu/src/api.ts` | Implement SSE streaming | `Pending` |
+| P2 | `gate.rs` does package install detection only via broad command filter | `backend/src/gate.rs` | Add specific package manager pattern matching | `Pending` |

@@ -1,4 +1,5 @@
 use crate::tool::Tool;
+use serde_json::Value;
 use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::{self, Display};
@@ -31,6 +32,11 @@ pub struct ToolRegistry {
 impl ToolRegistry {
     pub fn new() -> Self {
         Self::default()
+    }
+
+    pub fn validate(&self, id: &str, input: &Value) -> Result<(), String> {
+        let tool = self.tools.get(id).ok_or_else(|| format!("tool not found: {}", id))?;
+        tool.validate(input)
     }
 
     pub fn register(&mut self, tool: Arc<dyn Tool>) -> ToolResult<()> {
@@ -71,7 +77,7 @@ impl ToolRegistry {
 mod tests {
     use super::*;
     use crate::tool::Tool;
-    use serde_json::{Map, Value};
+    use serde_json::Value;
     use std::sync::Arc;
 
     struct Dummy;
@@ -90,11 +96,15 @@ mod tests {
         }
 
         fn schema(&self) -> Value {
-            Value::Object(Map::new())
+            serde_json::json!({})
         }
 
         fn execute(&self, input: Value) -> std::result::Result<Value, String> {
             Ok(input)
+        }
+
+        fn validate(&self, _input: &Value) -> Result<(), String> {
+            Ok(())
         }
     }
 

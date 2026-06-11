@@ -1,7 +1,6 @@
 use crate::config::Config;
-use crate::gate::{Gate, ApprovalRequest};
+use crate::gate::Gate;
 use crate::registry::ToolRegistry;
-use crate::tool::Tool;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::sync::Arc;
