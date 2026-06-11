@@ -11,6 +11,7 @@ use tokio::sync::{oneshot, RwLock};
 use std::collections::HashMap;
 
 mod config;
+mod context;
 mod gate;
 mod listdir;
 mod queue;
@@ -22,6 +23,7 @@ mod tool;
 mod writefile;
 
 use crate::config::Config;
+use crate::context::ContextBuilder;
 use crate::gate::Gate;
 use crate::queue::Loop;
 use crate::readfile::Readfile;
@@ -65,13 +67,7 @@ struct CallResponse {
 
 #[derive(Debug, Serialize)]
 struct ContextResponse {
-    context: Vec<ContextItem>,
-}
-
-#[derive(Debug, Serialize)]
-struct ContextItem {
-    path: String,
-    content: String,
+    context: Vec<crate::context::ContextItem>,
 }
 
 #[derive(Debug, Serialize)]
@@ -135,22 +131,8 @@ async fn context_handler(
     Json(payload): Json<ContextRequest>,
 ) -> Json<ContextResponse> {
     let config = Config::from_env();
-    let mut items = Vec::new();
-
-    if let Ok(search_result) = Search::execute_search(
-        &payload.task,
-        &std::env::current_dir().unwrap().to_string_lossy().to_string(),
-        &config,
-    ) {
-        if let Some(matches) = search_result.get("matches").and_then(|m| m.as_array()) {
-            for m in matches.iter().take(config.rg_max_count) {
-                let path = m.get("path").and_then(|p| p.as_str()).unwrap_or("").to_string();
-                let content = std::fs::read_to_string(&path).unwrap_or_default();
-                items.push(ContextItem { path, content });
-            }
-        }
-    }
-
+    let builder = ContextBuilder::new(config);
+    let items = builder.build(&payload.task).unwrap_or_default();
     Json(ContextResponse { context: items })
 }
 

@@ -16,6 +16,8 @@ pub struct Config {
     pub schema_validate: bool,
     pub tool_input_limit: usize,
     pub context_token_limit: usize,
+    pub context_top_n: usize,
+    pub context_max_file_bytes: usize,
 }
 
 impl Config {
@@ -76,6 +78,14 @@ impl Config {
                 .ok()
                 .and_then(|v| v.parse().ok())
                 .unwrap_or(8192),
+            context_top_n: env::var("BANDHU_CONTEXT_TOP_N")
+                .ok()
+                .and_then(|v| v.parse().ok())
+                .unwrap_or(10),
+            context_max_file_bytes: env::var("BANDHU_CONTEXT_MAX_FILE_BYTES")
+                .ok()
+                .and_then(|v| v.parse().ok())
+                .unwrap_or(65536),
         }
     }
 

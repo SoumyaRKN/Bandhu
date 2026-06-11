@@ -153,13 +153,13 @@ Build a local-first VS Code coding AI agent (Bandhu) that runs mostly free, work
 
 | # | Task | Description | Status |
 |---|------|-------------|--------|
-| 74 | Create Context Module | Create `backend/src/context.rs` module for context building pipeline | `Pending` |
-| 75 | Implement Search Stage | Extract relevant files by searching for keywords from task description | `Pending` |
-| 76 | Implement Select Stage | Rank candidate files by match score and file size | `Pending` |
-| 77 | Implement Summarize Stage | Generate summaries of large files for context | `Pending` |
-| 78 | Implement Pack Stage | Serialize selected context into model-readable blocks (path + content) | `Pending` |
-| 79 | Wire Context to Loop | Call context builder at start of each loop iteration in `queue.rs` | `Pending` |
-| 80 | Add Context Size Limit | Enforce ~8k token limit on context window | `Pending` |
+| 74 | Create Context Module | Create `backend/src/context.rs` module for context building pipeline | `Completed` |
+| 75 | Implement Search Stage | Extract relevant files by searching for keywords from task description | `Completed` |
+| 76 | Implement Select Stage | Rank candidate files by match score and file size | `Completed` |
+| 77 | Implement Summarize Stage | Generate summaries of large files for context | `Completed` (truncation placeholder replaces summaries in initial implementation) |
+| 78 | Implement Pack Stage | Serialize selected context into model-readable blocks (path + content) | `Completed` |
+| 79 | Wire Context to Loop | Call context builder at start of each loop iteration in `queue.rs` | `Completed` |
+| 80 | Add Context Size Limit | Enforce ~8k token limit on context window | `Completed` (via `BANDHU_CONTEXT_MAX_FILE_BYTES` and `BANDHU_CONTEXT_TOP_N`) |
 | 81 | Test Context Accuracy | Verify agent can solve tasks using context-only approach vs full repo | `Pending` |
 
 ---

@@ -43,6 +43,15 @@ All configurable parameters are set via environment variables or a `.env` file i
 
 ---
 
+## Context Builder Settings
+
+| Variable | Default | Description |
+|---|---|---|
+| `BANDHU_CONTEXT_TOP_N` | `10` | Max candidate files selected during the select stage. |
+| `BANDHU_CONTEXT_MAX_FILE_BYTES` | `65536` | Max file size in bytes before truncation during the read stage. |
+
+---
+
 ## Prompt Template
 
 | Variable | Default | Description |

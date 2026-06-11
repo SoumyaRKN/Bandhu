@@ -1,4 +1,5 @@
 use crate::config::Config;
+use crate::context::ContextBuilder;
 use crate::gate::Gate;
 use crate::registry::ToolRegistry;
 use serde::{Deserialize, Serialize};
@@ -33,7 +34,16 @@ impl Loop {
 
     pub async fn run(&self, request: Value) -> Value {
         let prompt = request.get("prompt").and_then(Value::as_str).unwrap_or("").to_string();
-        let mut context = request.get("context").cloned().unwrap_or(Value::Null);
+        let mut context = request.get("context").cloned().unwrap_or_else(|| {
+            let builder = ContextBuilder::new(self.config.clone());
+            let items = builder.build(&prompt).unwrap_or_default();
+            items.into_iter().map(|item| {
+                json!({
+                    "path": item.path,
+                    "content": item.content
+                })
+            }).collect::<Vec<_>>().into()
+        });
         
         let mut messages = vec![];
         let max_iterations = self.config.max_iterations;
