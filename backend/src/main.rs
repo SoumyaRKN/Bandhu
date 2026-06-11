@@ -1,9 +1,9 @@
-use axum::{
-    routing::post,
-    Json, Router,
-};
+use axum::{routing::post, Json, Router};
 use serde::{Deserialize, Serialize};
 use std::net::SocketAddr;
+
+mod registry;
+mod tool;
 
 #[derive(Debug, Deserialize)]
 struct ChatRequest {
@@ -39,7 +39,9 @@ async fn chat_handler(Json(payload): Json<ChatRequest>) -> Json<ChatResponse> {
         Err(e) => format!("Error calling Ollama: {}", e),
     };
 
-    Json(ChatResponse { response: response_text })
+    Json(ChatResponse {
+        response: response_text,
+    })
 }
 
 async fn call_ollama(req: OllamaRequest) -> Result<String, String> {
@@ -51,10 +53,7 @@ async fn call_ollama(req: OllamaRequest) -> Result<String, String> {
         .await
         .map_err(|e| e.to_string())?;
 
-    let body: OllamaResponse = response
-        .json()
-        .await
-        .map_err(|e| e.to_string())?;
+    let body: OllamaResponse = response.json().await.map_err(|e| e.to_string())?;
 
     Ok(body.response)
 }
@@ -65,7 +64,7 @@ async fn main() {
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
     println!("Bandhu backend listening on {}", addr);
-    
+
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
     axum::serve(listener, app).await.unwrap();
 }

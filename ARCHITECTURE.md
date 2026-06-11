@@ -311,7 +311,7 @@ experiments/             prototyping and benchmarks
 | extension scaffold  | done    |
 | backend scaffold    | done    |
 | ollama connection   | done    |
-| tool trait + registry | todo  |
+| tool trait + registry | done    |
 | context builder     | todo    |
 | tool-call loop      | todo    |
 | safety filter       | todo    |

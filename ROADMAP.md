@@ -107,12 +107,12 @@ Build a local-first VS Code coding AI agent (Bandhu) that runs mostly free, work
 
 | # | Task | Description | Status |
 |---|------|-------------|--------|
-| 49 | Define Tool Trait | Create base `Tool` trait with `id`, `name`, `description`, `input_schema`, `execute` method | `Pending` |
+| 49 | Define Tool Trait | Create base `Tool` trait with `id`, `name`, `description`, `input_schema`, `execute` method | `Completed` |
 | 50 | Implement ReadFile Tool | Create `ReadFile` tool: takes path, returns file content | `Pending` |
 | 51 | Implement Search Tool | Create `Search` tool: uses ripgrep to search text patterns | `Pending` |
 | 52 | Implement WriteFile Tool | Create `WriteFile` tool: writes content to file (requires approval) | `Pending` |
 | 53 | Implement RunCommand Tool | Create `RunCommand` tool: executes shell commands (requires approval) | `Pending` |
-| 54 | Add Tool Registry | Create tool registry to map tool IDs to implementations | `Pending` |
+| 54 | Add Tool Registry | Create tool registry to map tool IDs to implementations | `Completed` |
 | 55 | Add Tool Validation | Implement input schema validation for each tool | `Pending` |
 | 56 | Document Tool APIs | Write documentation for each tool's input/output format | `Pending` |
 
