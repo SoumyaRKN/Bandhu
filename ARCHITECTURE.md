@@ -56,7 +56,7 @@ Bandhu is a local-first VS Code coding AI agent. The system runs entirely on the
 ┌─────────────────────────────────────────────────────────┐
 │                    Ollama Runtime                        │
 │  ┌───────────────────────────────────────────────────┐  │
-│  │  qwen2.5-coder:7b (and other local models)       │  │
+│  │  qwen2.5-coder:7b or qwen3.5:9b (and other local models)       │  │
 │  │  http://localhost:11434                            │  │
 │  └───────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────┘

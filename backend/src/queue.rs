@@ -6,6 +6,8 @@ use crate::model::Model;
 use crate::registry::ToolRegistry;
 use serde_json::{json, Value};
 use std::collections::HashMap;
+use std::fs::OpenOptions;
+use std::io::Write;
 use std::sync::Arc;
 use tokio::sync::{oneshot, RwLock};
 
@@ -155,6 +157,7 @@ impl Loop {
                                 match rx.await {
                                     Ok(true) => {
                                         log::info!("approval granted: id='{}'", req_id);
+                                        self.logapproval(&req_id, tool_id, "approved");
                                         let stored_input = if tool_id == "writefile" {
                                             let guard = self.pending_writes.read().await;
                                             guard
@@ -206,6 +209,7 @@ impl Loop {
                                     }
                                     Ok(false) => {
                                         log::info!("approval rejected: id='{}'", req_id);
+                                        self.logapproval(&req_id, tool_id, "rejected");
                                         let reject_msg = json!({
                                             "type": "tool_error",
                                             "id": req_id,
@@ -215,6 +219,7 @@ impl Loop {
                                     }
                                     Err(_) => {
                                         log::warn!("approval timeout: id='{}'", req_id);
+                                        self.logapproval(&req_id, tool_id, "timeout");
                                         let timeout_msg = json!({
                                             "type": "tool_error",
                                             "id": req_id,
@@ -289,6 +294,26 @@ impl Loop {
             "messages": messages,
             "iterations": max_iterations
         })
+    }
+
+    fn logapproval(&self, id: &str, tool: &str, decision: &str) {
+        let Some(path) = &self.config.approvallog else {
+            return;
+        };
+        let line = json!({
+            "id": id,
+            "tool": tool,
+            "decision": decision
+        });
+        let file = OpenOptions::new().create(true).append(true).open(path);
+        match file {
+            Ok(mut file) => {
+                if let Err(e) = writeln!(file, "{}", line) {
+                    log::warn!("approval log write failed: {}", e);
+                }
+            }
+            Err(e) => log::warn!("approval log open failed: {}", e),
+        }
     }
 
     fn validateinput(&self, tool_id: &str, input: &Value) -> BackendResult<()> {

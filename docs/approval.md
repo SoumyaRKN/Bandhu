@@ -49,8 +49,8 @@ Example diff output:
 The gate checks `BANDHU_FORBIDDEN_CMDS` and `BANDHU_FORBIDDEN_PATHS` from `backend/.env`.
 
 - `runcommand` input is checked as a lowercase command string.
-- `writefile` and `runcommand` path inputs are checked as path substrings.
-- Matching is case-insensitive for commands, case-sensitive for paths.
+- `writefile`, `readfile`, and `runcommand` path inputs are checked as path substrings when a `path` field is present.
+- Matching is case-insensitive for commands and paths.
 
 ## Environment Variables
 
@@ -58,6 +58,7 @@ The gate checks `BANDHU_FORBIDDEN_CMDS` and `BANDHU_FORBIDDEN_PATHS` from `backe
 |---|---|---|
 | `BANDHU_DEFAULT_APPROVAL` | `false` | When `true`, bypasses the user prompt. |
 | `BANDHU_APPROVAL_TIMEOUT_SECS` | `300` | Timeout for pending approval. |
+| `BANDHU_APPROVAL_LOG` | _(empty)_ | Optional JSONL audit log path for approved, rejected, and timed out decisions. |
 | `BANDHU_SCHEMA_VALIDATE` | `true` | Validates tool inputs before approval and execution. |
 | `BANDHU_TOOL_INPUT_LIMIT` | `65536` | Max serialized JSON bytes allowed for a tool input. |
 
@@ -70,3 +71,11 @@ The loop emits these approval-related message types:
 | `tool_approval` | Tool requires user approval before execution. Includes `diff` field for writefile. |
 | `tool_result` | Tool executed successfully. |
 | `tool_error` | Tool failed (blocked by gate, path error, or execution error). |
+
+## Audit Log
+
+When `BANDHU_APPROVAL_LOG` is set, each decision is appended as one JSON object per line:
+
+```json
+{"decision":"approved","id":"writefile-1","tool":"writefile"}
+```

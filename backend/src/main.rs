@@ -1,6 +1,6 @@
 use axum::{
     extract::{Json, State},
-    http::StatusCode,
+    http::{HeaderValue, Method, StatusCode},
     routing::{get, post},
     Router,
 };
@@ -10,6 +10,7 @@ use serde_json::Value;
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::{oneshot, RwLock};
+use tower_http::cors::{Any, CorsLayer};
 
 mod applypatch;
 mod config;
@@ -176,6 +177,28 @@ fn validatecallinput(
         .map_err(|e| BackendError::Tool(e.to_string()))
 }
 
+fn cors(config: &Config) -> CorsLayer {
+    let layer = CorsLayer::new()
+        .allow_methods([Method::GET, Method::POST])
+        .allow_headers(Any);
+
+    if config.cors.iter().any(|origin| origin == "*") {
+        return layer.allow_origin(Any);
+    }
+
+    let origins = config
+        .cors
+        .iter()
+        .filter_map(|origin| origin.parse::<HeaderValue>().ok())
+        .collect::<Vec<_>>();
+
+    if origins.is_empty() {
+        layer.allow_origin(Any)
+    } else {
+        layer.allow_origin(origins)
+    }
+}
+
 async fn context_handler(
     State(_state): State<AppState>,
     Json(payload): Json<ContextRequest>,
@@ -235,7 +258,8 @@ async fn main() {
         .route("/call", post(call_handler))
         .route("/context", post(context_handler))
         .route("/approve", post(approve_handler))
-        .with_state(app_state);
+        .with_state(app_state)
+        .layer(cors(&config));
 
     let addr = config.server_addr();
     println!("Bandhu backend listening on {}", addr);

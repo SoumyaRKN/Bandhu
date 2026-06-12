@@ -38,6 +38,8 @@ Build a local-first VS Code coding AI agent (Bandhu) that runs mostly free, work
 | 12 | Verify Ollama | Run `ollama --version` to confirm installation | `Completed` |
 | 13 | Pull Coding Model | Run `ollama pull qwen2.5-coder:7b` | `Completed` |
 | 14 | Test Ollama | Run `ollama run qwen2.5-coder:7b` and verify model responds | `Completed` |
+| 13 | Pull 2nd Coding Model | Run `ollama pull or qwen3.5:9b` | `Completed` |
+| 14 | Test 2nd Ollama | Run `ollama run or qwen3.5:9b` and verify model responds | `Completed` |
 | 15 | Configure Ollama | Set Ollama to allow localhost connections, configure host and port if needed | `Completed` |
 
 ---
@@ -84,7 +86,7 @@ Build a local-first VS Code coding AI agent (Bandhu) that runs mostly free, work
 | 37 | Define Task Models | Create data structures for: Task, TaskRequest, TaskResponse, ToolCall | `Completed` |
 | 38 | Define Error Types | Create custom error types (`BackendError` enum) for backend service | `Completed` |
 | 39 | Create API Server | Implement HTTP server using Axum framework | `Completed` |
-| 40 | Add CORS Middleware | Configure CORS in `main.rs` to allow VS Code extension origin | `Pending` |
+| 40 | Add CORS Middleware | Configure CORS in `main.rs` to allow VS Code extension origin | `Completed` |
 | 41 | Add Health Check Endpoint | Create `/health` endpoint for monitoring backend status | `Completed` |
 
 ---
@@ -97,7 +99,7 @@ Build a local-first VS Code coding AI agent (Bandhu) that runs mostly free, work
 | 43 | Extract Model from Queue | Move `Model` struct and Ollama request/response types from `queue.rs` into `model.rs` | `Pending` |
 | 44 | Implement Generate Endpoint | Create `POST /api/generate` endpoint that accepts prompt and sends to Ollama | `Completed` (inside `/chat`) |
 | 45 | Implement Chat Endpoint | Create `POST /api/chat` endpoint for multi-turn conversations | `Completed` |
-| 46 | Add Request Timeout | Configure timeout for Ollama API requests in `reqwest::Client::builder()` | `Pending` |
+| 46 | Add Request Timeout | Configure timeout for Ollama API requests in `reqwest::Client::builder()` | `Completed` |
 | 47 | Test End-to-End Flow | Verify: Extension → Backend → Ollama → Backend → Extension works end-to-end | `Pending` |
 | 48 | Add Error Handling | Handle Ollama connection errors, model not found, and timeout scenarios with typed errors | `Pending` |
 
@@ -115,7 +117,7 @@ Build a local-first VS Code coding AI agent (Bandhu) that runs mostly free, work
 | 54 | Implement ListDir Tool | Create `Listdir` tool: list directory entries | `Completed` |
 | 55 | Add Tool Registry | Create tool registry to map tool IDs to implementations | `Completed` |
 | 56 | Add Tool Validation | Implement JSON Schema validation for tool inputs before execution | `Completed` |
-| 57 | Document Tool APIs | Write documentation for each tool's input/output format | `Pending` |
+| 57 | Document Tool APIs | Write documentation for each tool's input/output format | `Completed` |
 
 ---
 
@@ -144,7 +146,7 @@ Build a local-first VS Code coding AI agent (Bandhu) that runs mostly free, work
 | 69 | Add Command Confirmation | Require user approval before RunCommand tool is executed | `Completed` |
 | 70 | Add Package Install Confirmation | Require confirmation before any package installation commands | `Pending` |
 | 71 | Implement Confirmation UI | Create VS Code webview or quick pick for showing tool actions and requesting confirmation | `Completed` |
-| 72 | Add Approval Logging | Log all approved and rejected tool executions for audit trail | `Pending` |
+| 72 | Add Approval Logging | Log all approved and rejected tool executions for audit trail | `Completed` |
 | 73 | Test Safety Mechanisms | Manually verify dangerous commands are blocked and approvals work end-to-end | `Pending` |
 
 ---
@@ -176,7 +178,7 @@ Build a local-first VS Code coding AI agent (Bandhu) that runs mostly free, work
 | 87 | Add Line-by-Line Approval | Support approving/rejecting individual change hunks within a diff | `Pending` |
 | 88 | Add Edit Suggestions | Allow user to manually edit proposed changes before applying | `Pending` |
 | 89 | Test Diff Workflow | End-to-end test: model proposes change → diff shown → user approves → changes applied | `Pending` |
-| 90 | Document Diff System | Write documentation for the diff approval workflow | `Pending` |
+| 90 | Document Diff System | Write documentation for the diff approval workflow | `Completed` |
 
 ---
 

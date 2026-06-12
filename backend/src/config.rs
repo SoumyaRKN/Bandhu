@@ -23,6 +23,8 @@ pub struct Config {
     pub context_top_n: usize,
     pub context_max_file_bytes: usize,
     pub ollama_timeout_secs: u64,
+    pub cors: Vec<String>,
+    pub approvallog: Option<String>,
 }
 
 impl Config {
@@ -95,6 +97,13 @@ impl Config {
                 .ok()
                 .and_then(|v| v.parse().ok())
                 .unwrap_or(120),
+            cors: env::var("BANDHU_CORS_ORIGINS")
+                .unwrap_or_else(|_| "*".to_string())
+                .split(',')
+                .filter(|s| !s.trim().is_empty())
+                .map(|s| s.trim().to_string())
+                .collect(),
+            approvallog: env::var("BANDHU_APPROVAL_LOG").ok(),
         }
     }
 

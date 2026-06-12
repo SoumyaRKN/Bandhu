@@ -18,6 +18,7 @@ All configurable parameters are set via environment variables or a `.env` file i
 |---|---|---|
 | `BANDHU_SERVER_HOST` | `127.0.0.1` | Backend bind address. |
 | `BANDHU_SERVER_PORT` | `3000` | Backend bind port. |
+| `BANDHU_CORS_ORIGINS` | `*` | Comma-separated HTTP origins allowed to call the backend. Use `*` for local development or explicit values such as `http://127.0.0.1:3000,vscode-webview://localhost`. |
 
 ---
 
@@ -48,6 +49,7 @@ All configurable parameters are set via environment variables or a `.env` file i
 |---|---|---|
 | `BANDHU_DEFAULT_APPROVAL` | `false` | Auto-approve all tools when `true`. Disable for production. |
 | `BANDHU_APPROVAL_TIMEOUT_SECS` | `300` | Seconds before pending approval is aborted. |
+| `BANDHU_APPROVAL_LOG` | _(empty)_ | Optional JSONL audit log path for approval decisions. Example: `./approval.jsonl` |
 | `BANDHU_FORBIDDEN_CMDS` | _(empty)_ | Comma-separated lowercase command patterns blocked by the safety filter. Example: `rm -rf,sudo,del /f` |
 | `BANDHU_FORBIDDEN_PATHS` | _(empty)_ | Comma-separated path substrings blocked by the safety filter. Example: `/etc/passwd,.env` |
 
@@ -114,6 +116,7 @@ Sample validation failure:
 ```env
 BANDHU_SERVER_HOST=127.0.0.1
 BANDHU_SERVER_PORT=3000
+BANDHU_CORS_ORIGINS=*
 BANDHU_OLLAMA_BASE_URL=http://localhost:11434
 BANDHU_OLLAMA_MODEL=qwen2.5-coder:7b
 BANDHU_OLLAMA_STREAM=false
@@ -123,6 +126,7 @@ BANDHU_SCHEMA_VALIDATE=true
 BANDHU_TOOL_INPUT_LIMIT=65536
 BANDHU_DEFAULT_APPROVAL=false
 BANDHU_APPROVAL_TIMEOUT_SECS=300
+BANDHU_APPROVAL_LOG=./approval.jsonl
 BANDHU_FORBIDDEN_CMDS=rm -rf,sudo,del /f
 BANDHU_FORBIDDEN_PATHS=/etc/passwd,.env
 BANDHU_PROMPT_TEMPLATE=Available tools:\n{}\n\nContext:\n{}\n\nTask: {}

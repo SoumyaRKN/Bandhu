@@ -53,7 +53,7 @@ Personal Coding AI Agent — local-first, runs entirely on your machine using lo
 ┌─────────────────────────────────────────────────────────┐
 │                    Ollama Runtime                        │
 │  ┌───────────────────────────────────────────────────┐  │
-│  │  qwen2.5-coder:7b (and other local models)       │  │
+│  │  qwen2.5-coder:7b or qwen3.5:9b (and other local models)       │  │
 │  │  http://localhost:11434                            │  │
 │  └───────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────┘
@@ -87,6 +87,12 @@ Pull a coding model:
 
 ```bash
 ollama pull qwen2.5-coder:7b
+```
+
+Or
+
+```bash
+ollama pull qwen3.5:9b
 ```
 
 Verify Ollama is running:
