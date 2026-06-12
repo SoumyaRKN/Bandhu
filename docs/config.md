@@ -10,6 +10,8 @@ All configurable parameters are set via environment variables or a `.env` file i
 |---|---|---|
 | `BANDHU_BACKEND_URL` | `http://127.0.0.1:3000` | Backend HTTP endpoint for extension API calls. |
 
+The extension uses this endpoint for `/chat` and `/approve`. `/chat` returns a compatibility `response` string and a structured `messages` array that the controller forwards to the webview.
+
 ---
 
 ## Server Settings

@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { ChatMessage, ChatRequest, ChatResponse, ApprovalRequestMsg } from './types';
+import { ChatRequest, ChatResponse, ApprovalRequestMsg } from './types';
 import { fromEnv } from './config';
 
 const cfg = fromEnv();
@@ -11,7 +11,9 @@ export async function sendChat(prompt: string): Promise<ChatResponse> {
         body: JSON.stringify({ prompt } as ChatRequest),
     });
     const data = await res.json() as ChatResponse;
-    if (!res.ok) throw new Error(`chat failed: ${res.status}`);
+    if (!res.ok) {
+        throw new Error(`chat failed: ${res.status}`);
+    }
     return data;
 }
 

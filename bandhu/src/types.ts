@@ -9,6 +9,8 @@ export interface ChatMessage {
     iterations?: number;
     diff?: string;
     input?: unknown;
+    kind?: string;
+    pattern?: string;
 }
 
 export interface ApprovalRequestMsg {
@@ -23,6 +25,7 @@ export interface ChatRequest {
 
 export interface ChatResponse {
     response: string;
+    messages?: ChatMessage[];
 }
 
 export interface WebviewMsg {

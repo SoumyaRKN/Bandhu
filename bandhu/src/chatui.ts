@@ -30,12 +30,16 @@ export class ChatPanel {
     }
 
     append(msg: ChatMessage) {
-        if (!this.panel) return;
+        if (!this.panel) {
+            return;
+        }
         this.panel.webview.postMessage({ type: 'message', data: msg });
     }
 
     clear() {
-        if (!this.panel) return;
+        if (!this.panel) {
+            return;
+        }
         this.panel.webview.html = this.getHtml();
     }
 

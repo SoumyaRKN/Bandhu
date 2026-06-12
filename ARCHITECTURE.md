@@ -95,7 +95,7 @@ result   — ok/err enum used across all operations
 | method | path     | purpose                                   |
 |--------|----------|-------------------------------------------|
 | post   | /health  | backend liveness check                    |
-| post   | /chat    | accept prompt, run loop, return response  |
+| post   | /chat    | accept prompt, run loop, return response and message array |
 | post   | /call    | execute a single tool                     |
 | post   | /context | build context for a given task description |
 
@@ -110,7 +110,7 @@ result   — ok/err enum used across all operations
    d. if safe, execute via `tool` registry
    e. collect output, append to context
    f. repeat until model produces final answer
-4. return accumulated response array to extension
+4. return compatibility response text plus accumulated message array to extension
 
 ---
 
@@ -132,8 +132,8 @@ result   — ok/err enum used across all operations
 2. user invokes command → open `chatui` webview
 3. webview sends messages to `api` module
 4. `api` forwards to backend `/chat`
-5. streamed tokens rendered in `chatui`
-6. tool action detected → `approval` modal shown
+5. returned messages rendered in `chatui`
+6. tool approval message detected → approval controls shown
 7. user accepts/rejects → response sent back to backend
 8. final result displayed in `chatui`
 

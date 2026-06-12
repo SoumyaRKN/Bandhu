@@ -20,12 +20,14 @@ export class Controller implements vscode.Disposable {
 
         disposables.push(vscode.commands.registerCommand('bandhu.send', async () => {
             const input = await vscode.window.showInputBox({ prompt: 'Ask Bandhu' });
-            if (!input) return;
+            if (!input) {
+                return;
+            }
             this.status.setBusy();
             try {
                 const res = await sendChat(input);
                 this.status.setIdle();
-                this.chat.append({ type: 'response', content: res.response } as ChatMessage);
+                this.show(res);
             } catch (e) {
                 this.status.setError();
                 this.chat.append({ type: 'error', error: String(e) } as ChatMessage);
@@ -45,7 +47,7 @@ export class Controller implements vscode.Disposable {
             try {
                 const res = await sendChat(msg.text);
                 this.status.setIdle();
-                this.chat.append({ type: 'response', content: res.response } as ChatMessage);
+                this.show(res);
             } catch (e) {
                 this.status.setError();
                 this.chat.append({ type: 'error', error: String(e) } as ChatMessage);
@@ -56,6 +58,16 @@ export class Controller implements vscode.Disposable {
         }
         if (msg.type === 'reject' && msg.id) {
             await reject({ id: msg.id, tool: '', input: {} } as ApprovalRequestMsg);
+        }
+    }
+
+    private show(res: { response: string; messages?: ChatMessage[] }) {
+        const list = res.messages && res.messages.length > 0
+            ? res.messages
+            : [{ type: 'response', content: res.response } as ChatMessage];
+
+        for (const msg of list) {
+            this.chat.append(msg);
         }
     }
 

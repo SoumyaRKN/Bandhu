@@ -1,113 +1,4 @@
-"use strict";
-var __create = Object.create;
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __getProtoOf = Object.getPrototypeOf;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
-  // If the importer is in node compatibility mode or this is not an ESM
-  // file that has been converted to a CommonJS file using a Babel-
-  // compatible transform (i.e. "__esModule" has not been set), then set
-  // "default" to the CommonJS "module.exports" for node compatibility.
-  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
-  mod
-));
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
-
-// src/extension.ts
-var extension_exports = {};
-__export(extension_exports, {
-  activate: () => activate,
-  deactivate: () => deactivate
-});
-module.exports = __toCommonJS(extension_exports);
-
-// src/controller.ts
-var vscode3 = __toESM(require("vscode"));
-
-// src/status.ts
-var vscode = __toESM(require("vscode"));
-var StatusBar = class {
-  item;
-  constructor() {
-    this.item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
-    this.item.command = "bandhu.helloWorld";
-    this.item.show();
-  }
-  setBusy() {
-    this.item.text = "$(loading~spin) Bandhu";
-    this.item.tooltip = "Working";
-  }
-  setIdle() {
-    this.item.text = "$(check) Bandhu";
-    this.item.tooltip = "Ready";
-  }
-  setError() {
-    this.item.text = "$(error) Bandhu";
-    this.item.tooltip = "Error";
-  }
-  dispose() {
-    this.item.dispose();
-  }
-};
-
-// src/chatui.ts
-var vscode2 = __toESM(require("vscode"));
-var ChatPanel = class {
-  panel;
-  _onDidReceiveMessage = new vscode2.EventEmitter();
-  onDidReceiveMessage = this._onDidReceiveMessage.event;
-  create(column = vscode2.ViewColumn.One) {
-    if (this.panel) {
-      this.panel.reveal(column);
-      return;
-    }
-    this.panel = vscode2.window.createWebviewPanel(
-      "bandhuChat",
-      "Bandhu Chat",
-      column,
-      { enableScripts: true }
-    );
-    this.panel.webview.html = this.getHtml();
-    this.panel.webview.onDidReceiveMessage((msg) => {
-      this._onDidReceiveMessage.fire(msg);
-    });
-    this.panel.onDidDispose(() => {
-      this.panel = void 0;
-    });
-  }
-  append(msg) {
-    if (!this.panel) return;
-    this.panel.webview.postMessage({ type: "message", data: msg });
-  }
-  clear() {
-    if (!this.panel) return;
-    this.panel.webview.html = this.getHtml();
-  }
-  dispose() {
-    this._onDidReceiveMessage.dispose();
-    if (this.panel) {
-      this.panel.dispose();
-    }
-  }
-  escapeHtml(text) {
-    return text.replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[m] || m);
-  }
-  getHtml() {
-    return `<!DOCTYPE html>
+"use strict";var y=Object.create;var r=Object.defineProperty;var x=Object.getOwnPropertyDescriptor;var w=Object.getOwnPropertyNames;var C=Object.getPrototypeOf,B=Object.prototype.hasOwnProperty;var M=(t,e)=>{for(var s in e)r(t,s,{get:e[s],enumerable:!0})},m=(t,e,s,o)=>{if(e&&typeof e=="object"||typeof e=="function")for(let n of w(e))!B.call(t,n)&&n!==s&&r(t,n,{get:()=>e[n],enumerable:!(o=x(e,n))||o.enumerable});return t};var v=(t,e,s)=>(s=t!=null?y(C(t)):{},m(e||!t||!t.__esModule?r(s,"default",{value:t,enumerable:!0}):s,t)),k=t=>m(r({},"__esModule",{value:!0}),t);var P={};M(P,{activate:()=>E,deactivate:()=>D});module.exports=k(P);var i=v(require("vscode"));var d=v(require("vscode")),p=class{item;constructor(){this.item=d.window.createStatusBarItem(d.StatusBarAlignment.Left,100),this.item.command="bandhu.helloWorld",this.item.show()}setBusy(){this.item.text="$(loading~spin) Bandhu",this.item.tooltip="Working"}setIdle(){this.item.text="$(check) Bandhu",this.item.tooltip="Ready"}setError(){this.item.text="$(error) Bandhu",this.item.tooltip="Error"}dispose(){this.item.dispose()}};var a=v(require("vscode")),c=class{panel;_onDidReceiveMessage=new a.EventEmitter;onDidReceiveMessage=this._onDidReceiveMessage.event;create(e=a.ViewColumn.One){if(this.panel){this.panel.reveal(e);return}this.panel=a.window.createWebviewPanel("bandhuChat","Bandhu Chat",e,{enableScripts:!0}),this.panel.webview.html=this.getHtml(),this.panel.webview.onDidReceiveMessage(s=>{this._onDidReceiveMessage.fire(s)}),this.panel.onDidDispose(()=>{this.panel=void 0})}append(e){this.panel&&this.panel.webview.postMessage({type:"message",data:e})}clear(){this.panel&&(this.panel.webview.html=this.getHtml())}dispose(){this._onDidReceiveMessage.dispose(),this.panel&&this.panel.dispose()}escapeHtml(e){return e.replace(/[&<>"']/g,s=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[s]||s)}getHtml(){return`<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -151,7 +42,7 @@ var ChatPanel = class {
             messages.scrollTop = messages.scrollHeight;
         }
 
-        function addApproval(id, tool, inputVal) {
+        function addApproval(id, tool, inputVal, diffVal) {
             const div = document.createElement('div');
             div.className = 'msg tool_approval';
             
@@ -159,27 +50,39 @@ var ChatPanel = class {
             pathDisplay.className = 'path-display';
             pathDisplay.textContent = tool + ': ' + (typeof inputVal === 'object' && inputVal !== null ? inputVal.path || inputVal.command : '');
             div.appendChild(pathDisplay);
-
-            const contentPre = document.createElement('pre');
-            contentPre.style.fontSize = '12px';
-            contentPre.style.whiteSpace = 'pre-wrap';
-            contentPre.style.margin = '4px 0';
-            contentPre.textContent = JSON.stringify(inputVal, null, 2);
-            div.appendChild(contentPre);
-
+            
+            if (tool === 'writefile' && diffVal) {
+                const diffPre = document.createElement('pre');
+                diffPre.style.fontSize = '12px';
+                diffPre.style.whiteSpace = 'pre-wrap';
+                diffPre.style.margin = '4px 0';
+                diffPre.style.backgroundColor = 'var(--vscode-editor-lineHighlightBackground)';
+                diffPre.style.padding = '8px';
+                diffPre.style.borderRadius = '4px';
+                diffPre.textContent = diffVal;
+                div.appendChild(diffPre);
+            } else {
+                const contentPre = document.createElement('pre');
+                contentPre.style.fontSize = '12px';
+                contentPre.style.whiteSpace = 'pre-wrap';
+                contentPre.style.margin = '4px 0';
+                contentPre.textContent = JSON.stringify(inputVal, null, 2);
+                div.appendChild(contentPre);
+            }
+            
             const buttonsDiv = document.createElement('div');
             buttonsDiv.className = 'approval-buttons';
-
+            
             const approveBtn = document.createElement('button');
             approveBtn.textContent = 'Approve';
             approveBtn.onclick = () => vscode.postMessage({ type: 'approve', id: id });
             buttonsDiv.appendChild(approveBtn);
-
+            
             const rejectBtn = document.createElement('button');
             rejectBtn.textContent = 'Reject';
             rejectBtn.onclick = () => vscode.postMessage({ type: 'reject', id: id });
             buttonsDiv.appendChild(rejectBtn);
-
+            
             div.appendChild(buttonsDiv);
             messages.appendChild(div);
             messages.scrollTop = messages.scrollHeight;
@@ -190,7 +93,7 @@ var ChatPanel = class {
             if (msg.type === 'message') {
                 const data = msg.data;
                 if (data.type === 'tool_approval') {
-                    addApproval(data.id, data.tool, data.input);
+                    addApproval(data.id, data.tool, data.input, data.diff);
                 } else if (data.type === 'response' || data.type === 'tool_result' || data.type === 'tool_error' || data.type === 'error') {
                     addMessage(data.type, data.content || data.error || '');
                 }
@@ -208,116 +111,4 @@ var ChatPanel = class {
         input.onkeydown = e => { if (e.key === 'Enter') sendMessage(); };
     </script>
 </body>
-</html>`;
-  }
-};
-
-// src/config.ts
-function fromEnv() {
-  return {
-    backendUrl: process.env.BANDHU_BACKEND_URL || "http://127.0.0.1:3000",
-    defaultApproval: process.env.BANDHU_DEFAULT_APPROVAL === "true",
-    approvalTimeoutSecs: parseInt(process.env.BANDHU_APPROVAL_TIMEOUT_SECS || "300", 10),
-    forbiddenCommands: (process.env.BANDHU_FORBIDDEN_CMDS || "").split(",").map((s) => s.trim().toLowerCase()).filter(Boolean),
-    forbiddenPaths: (process.env.BANDHU_FORBIDDEN_PATHS || "").split(",").map((s) => s.trim()).filter(Boolean)
-  };
-}
-
-// src/api.ts
-var cfg = fromEnv();
-async function sendChat(prompt) {
-  const res = await fetch(`${cfg.backendUrl}/chat`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ prompt })
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(`chat failed: ${res.status}`);
-  return data;
-}
-async function approve(req) {
-  const res = await fetch(`${cfg.backendUrl}/approve`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ request_id: req.id, approved: true })
-  });
-  return res.ok;
-}
-async function reject(req) {
-  const res = await fetch(`${cfg.backendUrl}/approve`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ request_id: req.id, approved: false })
-  });
-  return res.ok;
-}
-
-// src/controller.ts
-var Controller = class {
-  constructor(ctx) {
-    this.ctx = ctx;
-    ctx.subscriptions.push(this);
-  }
-  ctx;
-  status = new StatusBar();
-  chat = new ChatPanel();
-  async activate() {
-    this.chat.create();
-    const disposables = [];
-    disposables.push(vscode3.commands.registerCommand("bandhu.helloWorld", () => this.chat.create()));
-    disposables.push(vscode3.commands.registerCommand("bandhu.send", async () => {
-      const input = await vscode3.window.showInputBox({ prompt: "Ask Bandhu" });
-      if (!input) return;
-      this.status.setBusy();
-      try {
-        const res = await sendChat(input);
-        this.status.setIdle();
-        this.chat.append({ type: "response", content: res.response });
-      } catch (e) {
-        this.status.setError();
-        this.chat.append({ type: "error", error: String(e) });
-      }
-    }));
-    disposables.push(this.chat.onDidReceiveMessage((msg) => this.handleWebviewMsg(msg)));
-    for (const d of disposables) {
-      this.ctx.subscriptions.push(d);
-    }
-  }
-  async handleWebviewMsg(msg) {
-    if (msg.type === "send" && msg.text) {
-      this.status.setBusy();
-      try {
-        const res = await sendChat(msg.text);
-        this.status.setIdle();
-        this.chat.append({ type: "response", content: res.response });
-      } catch (e) {
-        this.status.setError();
-        this.chat.append({ type: "error", error: String(e) });
-      }
-    }
-    if (msg.type === "approve" && msg.id) {
-      await approve({ id: msg.id, tool: "", input: {} });
-    }
-    if (msg.type === "reject" && msg.id) {
-      await reject({ id: msg.id, tool: "", input: {} });
-    }
-  }
-  dispose() {
-    this.status.dispose();
-    this.chat.dispose();
-  }
-};
-
-// src/extension.ts
-function activate(ctx) {
-  const controller = new Controller(ctx);
-  controller.activate();
-}
-function deactivate() {
-}
-// Annotate the CommonJS export names for ESM import in node:
-0 && (module.exports = {
-  activate,
-  deactivate
-});
-//# sourceMappingURL=extension.js.map
+</html>`}};function g(){return{backendUrl:process.env.BANDHU_BACKEND_URL||"http://127.0.0.1:3000",defaultApproval:process.env.BANDHU_DEFAULT_APPROVAL==="true",approvalTimeoutSecs:parseInt(process.env.BANDHU_APPROVAL_TIMEOUT_SECS||"300",10),forbiddenCommands:(process.env.BANDHU_FORBIDDEN_CMDS||"").split(",").map(t=>t.trim().toLowerCase()).filter(Boolean),forbiddenPaths:(process.env.BANDHU_FORBIDDEN_PATHS||"").split(",").map(t=>t.trim()).filter(Boolean)}}var u=g();async function h(t){let e=await fetch(`${u.backendUrl}/chat`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt:t})}),s=await e.json();if(!e.ok)throw new Error(`chat failed: ${e.status}`);return s}async function f(t){return(await fetch(`${u.backendUrl}/approve`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({request_id:t.id,approved:!0})})).ok}async function b(t){return(await fetch(`${u.backendUrl}/approve`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({request_id:t.id,approved:!1})})).ok}var l=class{constructor(e){this.ctx=e;e.subscriptions.push(this)}ctx;status=new p;chat=new c;async activate(){this.chat.create();let e=[];e.push(i.commands.registerCommand("bandhu.helloWorld",()=>this.chat.create())),e.push(i.commands.registerCommand("bandhu.send",async()=>{let s=await i.window.showInputBox({prompt:"Ask Bandhu"});if(s){this.status.setBusy();try{let o=await h(s);this.status.setIdle(),this.show(o)}catch(o){this.status.setError(),this.chat.append({type:"error",error:String(o)})}}})),e.push(this.chat.onDidReceiveMessage(s=>this.handleWebviewMsg(s)));for(let s of e)this.ctx.subscriptions.push(s)}async handleWebviewMsg(e){if(e.type==="send"&&e.text){this.status.setBusy();try{let s=await h(e.text);this.status.setIdle(),this.show(s)}catch(s){this.status.setError(),this.chat.append({type:"error",error:String(s)})}}e.type==="approve"&&e.id&&await f({id:e.id,tool:"",input:{}}),e.type==="reject"&&e.id&&await b({id:e.id,tool:"",input:{}})}show(e){let s=e.messages&&e.messages.length>0?e.messages:[{type:"response",content:e.response}];for(let o of s)this.chat.append(o)}dispose(){this.status.dispose(),this.chat.dispose()}};function E(t){new l(t).activate()}function D(){}0&&(module.exports={activate,deactivate});

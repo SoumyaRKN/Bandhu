@@ -66,6 +66,7 @@ struct ApproveRequest {
 #[derive(Debug, Serialize)]
 struct ChatResponse {
     response: String,
+    messages: Vec<Value>,
 }
 
 #[derive(Debug, Serialize)]
@@ -114,6 +115,11 @@ async fn chat_handler(
     });
 
     let response_value = loop_handler.run(request_value).await;
+    let messages = response_value
+        .get("messages")
+        .and_then(Value::as_array)
+        .cloned()
+        .unwrap_or_default();
     let response_text = response_value
         .get("messages")
         .and_then(Value::as_array)
@@ -125,6 +131,7 @@ async fn chat_handler(
 
     Json(ChatResponse {
         response: response_text,
+        messages,
     })
 }
 
