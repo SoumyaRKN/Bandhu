@@ -10,7 +10,7 @@ bandhu/node_modules/
 backend/target/
 
 # VS Code
-.vscode/
+./.vscode/
 *.code-workspace
 
 # Python
