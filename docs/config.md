@@ -9,8 +9,11 @@ All configurable parameters are set via environment variables or a `.env` file i
 | Variable | Default | Description |
 |---|---|---|
 | `BANDHU_BACKEND_URL` | `http://127.0.0.1:3000` | Backend HTTP endpoint for extension API calls. |
+| `BANDHU_CHAT_PLACEHOLDER` | `Ask Bandhu...` | Placeholder shown in the webview chat input. Example: `Describe the coding task...` |
 
 The extension uses this endpoint for `/chat` and `/approve`. `/chat` returns a compatibility `response` string and a structured `messages` array that the controller forwards to the webview.
+
+The `Bandhu: Open Chat` command and status bar item open the webview chat panel. User prompts are submitted from the webview input, not from a VS Code InputBox.
 
 ---
 
@@ -121,6 +124,7 @@ Sample validation failure:
 ```env
 BANDHU_SERVER_HOST=127.0.0.1
 BANDHU_SERVER_PORT=3000
+BANDHU_CHAT_PLACEHOLDER=Ask Bandhu...
 BANDHU_CORS_ORIGINS=*
 BANDHU_OLLAMA_BASE_URL=http://localhost:11434
 BANDHU_OLLAMA_MODEL=qwen2.5-coder:7b

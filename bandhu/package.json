@@ -14,8 +14,8 @@
   "contributes": {
     "commands": [
       {
-        "command": "bandhu.helloWorld",
-        "title": "Hello World"
+        "command": "bandhu.open",
+        "title": "Bandhu: Open Chat"
       }
     ]
   },

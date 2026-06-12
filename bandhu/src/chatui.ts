@@ -6,6 +6,8 @@ export class ChatPanel {
     private _onDidReceiveMessage = new vscode.EventEmitter<WebviewMsg>();
     readonly onDidReceiveMessage = this._onDidReceiveMessage.event;
 
+    constructor(private placeholder: string = 'Ask Bandhu...') {}
+
     create(column: vscode.ViewColumn = vscode.ViewColumn.One) {
         if (this.panel) {
             this.panel.reveal(column);
@@ -27,6 +29,14 @@ export class ChatPanel {
         this.panel.onDidDispose(() => {
             this.panel = undefined;
         });
+    }
+
+    focus() {
+        this.create();
+        if (!this.panel) {
+            return;
+        }
+        this.panel.webview.postMessage({ type: 'focus' });
     }
 
     append(msg: ChatMessage) {
@@ -82,7 +92,7 @@ export class ChatPanel {
 <body>
     <div id="messages"></div>
     <div class="input-box">
-        <input id="input" type="text" placeholder="Ask Bandhu..." autocomplete="off" />
+        <input id="input" type="text" placeholder="${this.escapeHtml(this.placeholder)}" autocomplete="off" />
         <button id="send">Send</button>
     </div>
     <script>
@@ -154,6 +164,8 @@ export class ChatPanel {
                 } else if (data.type === 'response' || data.type === 'tool_result' || data.type === 'tool_error' || data.type === 'error') {
                     addMessage(data.type, data.content || data.error || '');
                 }
+            } else if (msg.type === 'focus') {
+                input.focus();
             }
         });
 

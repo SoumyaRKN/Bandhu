@@ -4,6 +4,7 @@ export interface EnvConfig {
     approvalTimeoutSecs: number;
     forbiddenCommands: string[];
     forbiddenPaths: string[];
+    placeholder: string;
 }
 
 export function fromEnv(): EnvConfig {
@@ -19,5 +20,6 @@ export function fromEnv(): EnvConfig {
             .split(',')
             .map(s => s.trim())
             .filter(Boolean),
+        placeholder: process.env.BANDHU_CHAT_PLACEHOLDER || 'Ask Bandhu...',
     };
 }

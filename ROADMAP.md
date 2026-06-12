@@ -188,7 +188,7 @@ Build a local-first VS Code coding AI agent (Bandhu) that runs mostly free, work
 |---|------|-------------|--------|
 | 91 | Fix Approval Flow in Controller | Wire `handleMessage` to webview; send `tool_approval` messages to webview panel | `Completed` |
 | 92 | Add Webview Approval JS | Add JavaScript in webview HTML to receive approval messages and show UI buttons | `Completed` |
-| 93 | Replace InputBox with Chat UI | Replace `vscode.window.showInputBox` with proper webview chat input | `Pending` |
+| 93 | Replace InputBox with Chat UI | Replace `vscode.window.showInputBox` with proper webview chat input | `Completed` |
 | 94 | Stream Responses Backend | Add SSE streaming support to `/chat` endpoint | `Pending` |
 | 95 | Stream Responses Extension | Update extension to consume SSE stream and render tokens incrementally | `Pending` |
 | 96 | Add Request Cancellation | Support cancelling in-flight requests when user sends new input | `Pending` |

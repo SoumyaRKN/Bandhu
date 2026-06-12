@@ -195,6 +195,7 @@ cargo run --release  # automatically loads .env if present
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `BANDHU_BACKEND_URL` | `http://127.0.0.1:3000` | Backend server URL |
+| `BANDHU_CHAT_PLACEHOLDER` | `Ask Bandhu...` | Placeholder shown in the webview chat input |
 | `BANDHU_DEFAULT_APPROVAL` | `false` | Auto-approve all tool calls |
 | `BANDHU_APPROVAL_TIMEOUT_SECS` | `300` | Approval prompt timeout in seconds |
 | `BANDHU_FORBIDDEN_CMDS` | *(empty)* | Comma-separated forbidden command patterns |

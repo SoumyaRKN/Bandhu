@@ -3,10 +3,12 @@ import { StatusBar } from './status';
 import { ChatPanel } from './chatui';
 import { sendChat, approve, reject } from './api';
 import { ChatMessage, ApprovalRequestMsg, WebviewMsg } from './types';
+import { fromEnv } from './config';
 
 export class Controller implements vscode.Disposable {
     private status: StatusBar = new StatusBar();
-    private chat: ChatPanel = new ChatPanel();
+    private config = fromEnv();
+    private chat: ChatPanel = new ChatPanel(this.config.placeholder);
 
     constructor(private ctx: vscode.ExtensionContext) {
         ctx.subscriptions.push(this);
@@ -16,23 +18,7 @@ export class Controller implements vscode.Disposable {
         this.chat.create();
         const disposables: vscode.Disposable[] = [];
 
-        disposables.push(vscode.commands.registerCommand('bandhu.helloWorld', () => this.chat.create()));
-
-        disposables.push(vscode.commands.registerCommand('bandhu.send', async () => {
-            const input = await vscode.window.showInputBox({ prompt: 'Ask Bandhu' });
-            if (!input) {
-                return;
-            }
-            this.status.setBusy();
-            try {
-                const res = await sendChat(input);
-                this.status.setIdle();
-                this.show(res);
-            } catch (e) {
-                this.status.setError();
-                this.chat.append({ type: 'error', error: String(e) } as ChatMessage);
-            }
-        }));
+        disposables.push(vscode.commands.registerCommand('bandhu.open', () => this.chat.focus()));
 
         disposables.push(this.chat.onDidReceiveMessage((msg: WebviewMsg) => this.handleWebviewMsg(msg)));
 

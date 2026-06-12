@@ -5,7 +5,7 @@ export class StatusBar {
 
     constructor() {
         this.item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
-        this.item.command = 'bandhu.helloWorld';
+        this.item.command = 'bandhu.open';
         this.item.show();
     }
 
