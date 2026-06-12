@@ -135,7 +135,7 @@ cd backend
 cargo build --release
 ```
 
-The backend binary will be at `backend/target/release/bandhu-server`.
+The backend binary will be at `backend/target/release/bandhu-backend`.
 
 #### 4. Install the Extension
 
@@ -188,6 +188,7 @@ Refactor this function to use async/await
 ### Tool Approval Flow
 
 When Bandhu proposes a file edit or command:
+
 1. A `tool_approval` message appears in chat
 2. For `writefile`: A diff preview shows additions (`-`) and removals (`+`)
 3. Click **Approve** to execute or **Reject** to cancel
