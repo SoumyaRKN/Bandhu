@@ -95,7 +95,7 @@ export class ChatPanel {
             messages.scrollTop = messages.scrollHeight;
         }
 
-        function addApproval(id, tool, inputVal) {
+        function addApproval(id, tool, inputVal, diffVal) {
             const div = document.createElement('div');
             div.className = 'msg tool_approval';
             
@@ -103,27 +103,39 @@ export class ChatPanel {
             pathDisplay.className = 'path-display';
             pathDisplay.textContent = tool + ': ' + (typeof inputVal === 'object' && inputVal !== null ? inputVal.path || inputVal.command : '');
             div.appendChild(pathDisplay);
-
-            const contentPre = document.createElement('pre');
-            contentPre.style.fontSize = '12px';
-            contentPre.style.whiteSpace = 'pre-wrap';
-            contentPre.style.margin = '4px 0';
-            contentPre.textContent = JSON.stringify(inputVal, null, 2);
-            div.appendChild(contentPre);
-
+            
+            if (tool === 'writefile' && diffVal) {
+                const diffPre = document.createElement('pre');
+                diffPre.style.fontSize = '12px';
+                diffPre.style.whiteSpace = 'pre-wrap';
+                diffPre.style.margin = '4px 0';
+                diffPre.style.backgroundColor = 'var(--vscode-editor-lineHighlightBackground)';
+                diffPre.style.padding = '8px';
+                diffPre.style.borderRadius = '4px';
+                diffPre.textContent = diffVal;
+                div.appendChild(diffPre);
+            } else {
+                const contentPre = document.createElement('pre');
+                contentPre.style.fontSize = '12px';
+                contentPre.style.whiteSpace = 'pre-wrap';
+                contentPre.style.margin = '4px 0';
+                contentPre.textContent = JSON.stringify(inputVal, null, 2);
+                div.appendChild(contentPre);
+            }
+            
             const buttonsDiv = document.createElement('div');
             buttonsDiv.className = 'approval-buttons';
-
+            
             const approveBtn = document.createElement('button');
             approveBtn.textContent = 'Approve';
             approveBtn.onclick = () => vscode.postMessage({ type: 'approve', id: id });
             buttonsDiv.appendChild(approveBtn);
-
+            
             const rejectBtn = document.createElement('button');
             rejectBtn.textContent = 'Reject';
             rejectBtn.onclick = () => vscode.postMessage({ type: 'reject', id: id });
             buttonsDiv.appendChild(rejectBtn);
-
+            
             div.appendChild(buttonsDiv);
             messages.appendChild(div);
             messages.scrollTop = messages.scrollHeight;
@@ -134,7 +146,7 @@ export class ChatPanel {
             if (msg.type === 'message') {
                 const data = msg.data;
                 if (data.type === 'tool_approval') {
-                    addApproval(data.id, data.tool, data.input);
+                    addApproval(data.id, data.tool, data.input, data.diff);
                 } else if (data.type === 'response' || data.type === 'tool_result' || data.type === 'tool_error' || data.type === 'error') {
                     addMessage(data.type, data.content || data.error || '');
                 }

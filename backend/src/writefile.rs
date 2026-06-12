@@ -13,6 +13,14 @@ impl Writefile {
             gate: Gate::new(config),
         }
     }
+    
+    pub fn diff(input: &Value) -> Result<String, String> {
+        let path = input.get("path").and_then(|v| v.as_str()).unwrap_or("");
+        let content = input.get("content").and_then(|v| v.as_str()).unwrap_or("");
+        
+        let existing = fs::read_to_string(PathBuf::from(path)).unwrap_or_default();
+        Ok(crate::diff::generate(&existing, content, path))
+    }
 }
 
 impl Tool for Writefile {
@@ -47,11 +55,16 @@ impl Tool for Writefile {
         };
         self.gate.check(&input, self.id())?;
         let path_buf = PathBuf::from(path);
+        
         if let Some(parent) = path_buf.parent() {
             fs::create_dir_all(parent).map_err(|e| e.to_string())?;
         }
         fs::write(&path_buf, content).map_err(|e| e.to_string())?;
-        Ok(json!({"path": path_buf.display().to_string(), "status": "written"}))
+        
+        Ok(json!({
+            "path": path_buf.display().to_string(),
+            "status": "written"
+        }))
     }
     fn validate(&self, input: &Value) -> Result<(), String> {
         if !input.is_object() {

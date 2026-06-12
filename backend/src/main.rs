@@ -12,8 +12,10 @@ use std::collections::HashMap;
 
 mod config;
 mod context;
+mod diff;
 mod gate;
 mod listdir;
+mod model;
 mod queue;
 mod readfile;
 mod registry;
@@ -21,7 +23,9 @@ mod runcommand;
 mod search;
 mod tool;
 mod writefile;
+mod applypatch;
 
+use crate::applypatch::Applypatch;
 use crate::config::Config;
 use crate::context::ContextBuilder;
 use crate::gate::Gate;
@@ -80,6 +84,7 @@ struct AppState {
     registry: Arc<ToolRegistry>,
     gate: Arc<Gate>,
     pending_approvals: Arc<RwLock<HashMap<String, oneshot::Sender<bool>>>>,
+    pending_writes: Arc<RwLock<HashMap<String, Value>>>,
 }
 
 async fn health_handler() -> Json<HealthResponse> {
@@ -96,8 +101,9 @@ async fn chat_handler(
     let config = Config::from_env();
     let gate = state.gate.clone();
     let pending = state.pending_approvals.clone();
+    let pending_writes = state.pending_writes.clone();
 
-    let loop_handler = Loop::new(registry, config, gate, pending);
+    let loop_handler = Loop::new(registry, config, gate, pending, pending_writes);
 
     let request_value = serde_json::json!({
         "prompt": payload.prompt,
@@ -157,6 +163,7 @@ async fn main() {
     registry.register(Arc::new(Readfile)).unwrap();
     registry.register(Arc::new(Search::new(config.clone()))).unwrap();
     registry.register(Arc::new(Writefile::new(config.clone()))).unwrap();
+    registry.register(Arc::new(Applypatch::new(config.clone()))).unwrap();
     registry.register(Arc::new(Runcommand::new(config.clone()))).unwrap();
     registry.register(Arc::new(Listdir::new(config.clone()))).unwrap();
 
@@ -164,6 +171,7 @@ async fn main() {
         registry: Arc::new(registry),
         gate: Arc::new(Gate::new(config.clone())),
         pending_approvals: Arc::new(RwLock::new(HashMap::new())),
+        pending_writes: Arc::new(RwLock::new(HashMap::new())),
     };
 
     let app = Router::new()

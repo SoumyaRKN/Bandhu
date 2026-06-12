@@ -71,14 +71,16 @@ Bandhu is a local-first VS Code coding AI agent. The system runs entirely on the
 
 ### module map
 
-| module  | purpose                                      |
-|---------|----------------------------------------------|
-| queue   | manages conversation and tool-call loop      |
-| tool    | base trait and tool implementations          |
-| context | selects relevant files for the model         |
-| safety  | command filtering and approval enforcement   |
-| api     | HTTP endpoints and request routing           |
-| model   | Ollama client abstraction                    |
+| module     | purpose                                      |
+|------------|----------------------------------------------|
+| queue      | manages conversation and tool-call loop      |
+| tool       | base trait and tool implementations          |
+| context    | selects relevant files for the model         |
+| safety     | command filtering and approval enforcement   |
+| api        | HTTP endpoints and request routing           |
+| model      | Ollama client abstraction                    |
+| diff       | unified diff generation and application      |
+| applypatch | patch application tool                     |
 
 ### type definitions
 
@@ -158,6 +160,7 @@ trait:
 | readfile   | read file content by path      | no                |
 | search     | text search via ripgrep        | no                |
 | writefile  | write or replace file content  | yes               |
+| applypatch | apply unified diff patch       | yes               |
 | runcommand | execute shell command          | yes               |
 | listdir    | list directory entries         | no                |
 
@@ -272,6 +275,8 @@ bandhu/                  VS Code extension (TypeScript)
 backend/                 Rust backend service
   src/
     main.rs              entry, routing
+    diff.rs              diff generation module
+    applypatch.rs        patch application tool
   cargo.toml             dependencies
 
 docs/                    design and user documentation
@@ -316,6 +321,6 @@ experiments/             prototyping and benchmarks
 | tool-call loop        | done           |
 | safety filter         | done           |
 | approval modal        | done           |
-| diff approval         | todo           |
+| diff approval         | done           |
 | test loop             | todo           |
 | P0 compile fixes      | done           |

@@ -19,10 +19,29 @@ The extension supports two approval UI modes:
 4. If the input passes, the backend emits a `tool_approval` message.
 5. The webview displays inline approval buttons (Approve/Reject) with tool details:
    - Tool name and target path/command
+   - For writefile: a unified diff showing the proposed changes
    - JSON representation of the input
 6. The user clicks Approve or Reject in the webview.
 7. The controller sends the decision to `/approve` endpoint.
 8. The backend resumes or aborts execution based on the decision.
+
+## Diff Preview
+
+When the `writefile` tool is triggered:
+
+1. The diff generator reads the existing file content (if any).
+2. A unified diff is generated showing changes with `-` (removals) and `+` (additions).
+3. The diff is included in the `tool_approval` message under the `diff` field.
+4. The webview renders the diff in a formatted `<pre>` block with syntax highlighting.
+
+Example diff output:
+```
+--- a/src/main.rs
++++ b/src/main.rs
+-line1
++line1 modified
+ line2
+```
 
 ## Safety Filter
 
@@ -45,6 +64,6 @@ The loop emits these approval-related message types:
 
 | Type | Meaning |
 |---|---|
-| `tool_approval` | Tool requires user approval before execution. |
+| `tool_approval` | Tool requires user approval before execution. Includes `diff` field for writefile. |
 | `tool_result` | Tool executed successfully. |
 | `tool_error` | Tool failed (blocked by gate, path error, or execution error). |

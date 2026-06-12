@@ -9,15 +9,20 @@ pub struct Config {
     pub ollama_stream: bool,
     pub max_iterations: usize,
     pub rg_max_count: usize,
+    #[allow(dead_code)]
     pub default_approval: bool,
+    #[allow(dead_code)]
     pub approval_timeout_secs: u64,
     pub forbidden_command_patterns: Vec<String>,
     pub forbidden_path_patterns: Vec<String>,
+    #[allow(dead_code)]
     pub schema_validate: bool,
+    #[allow(dead_code)]
     pub tool_input_limit: usize,
     pub context_token_limit: usize,
     pub context_top_n: usize,
     pub context_max_file_bytes: usize,
+    pub ollama_timeout_secs: u64,
 }
 
 impl Config {
@@ -86,6 +91,10 @@ impl Config {
                 .ok()
                 .and_then(|v| v.parse().ok())
                 .unwrap_or(65536),
+            ollama_timeout_secs: env::var("BANDHU_OLLAMA_TIMEOUT_SECS")
+                .ok()
+                .and_then(|v| v.parse().ok())
+                .unwrap_or(120),
         }
     }
 

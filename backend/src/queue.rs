@@ -1,8 +1,8 @@
 use crate::config::Config;
 use crate::context::ContextBuilder;
 use crate::gate::Gate;
+use crate::model::Model;
 use crate::registry::ToolRegistry;
-use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::sync::Arc;
 use tokio::sync::{oneshot, RwLock};
@@ -14,6 +14,7 @@ pub struct Loop {
     config: Config,
     gate: Arc<Gate>,
     pending: Arc<RwLock<HashMap<String, oneshot::Sender<bool>>>>,
+    pending_writes: Arc<RwLock<HashMap<String, Value>>>,
 }
 
 impl Loop {
@@ -22,6 +23,7 @@ impl Loop {
         config: Config,
         gate: Arc<Gate>,
         pending: Arc<RwLock<HashMap<String, oneshot::Sender<bool>>>>,
+        pending_writes: Arc<RwLock<HashMap<String, Value>>>,
     ) -> Self {
         Self {
             model: Model::new(config.clone()),
@@ -29,6 +31,7 @@ impl Loop {
             config,
             gate,
             pending,
+            pending_writes,
         }
     }
 
@@ -76,13 +79,30 @@ impl Loop {
                                     guard.insert(req_id.clone(), tx);
                                 }
                                 
+                                let tool_input = tool_call.input.clone();
+                                
+                                let diff = if tool_id == "writefile" {
+                                    let diff = crate::writefile::Writefile::diff(&tool_input).unwrap_or_default();
+                                    Some(diff)
+                                } else {
+                                    None
+                                };
+                                
                                 let approval_msg = json!({
                                     "type": "tool_approval",
                                     "id": req_id,
                                     "tool": tool_id,
-                                    "input": tool_call.input
+                                    "input": tool_input.clone(),
+                                    "diff": diff
                                 });
-                                messages.push(approval_msg);
+                                messages.push(approval_msg.clone());
+                                
+                                if tool_id == "writefile" {
+                                    {
+                                        let mut guard = self.pending_writes.write().await;
+                                        guard.insert(req_id.clone(), tool_input.clone());
+                                    }
+                                }
                                 
                                 context = append_context(&context, json!({
                                     "type": "tool_approval",
@@ -92,7 +112,14 @@ impl Loop {
                                 
                                 match rx.await {
                                     Ok(true) => {
-                                        let result = tool.execute(tool_call.input);
+                                        let stored_input = if tool_id == "writefile" {
+                                            let guard = self.pending_writes.read().await;
+                                            guard.get(&req_id).cloned().unwrap_or_else(|| tool_input.clone())
+                                        } else {
+                                            tool_input
+                                        };
+                                        
+                                        let result = tool.execute(stored_input);
                                         let result_value = match result {
                                             Ok(v) => json!({
                                                 "type": "tool_result",
@@ -105,6 +132,12 @@ impl Loop {
                                                 "error": e
                                             }),
                                         };
+                                        
+                                        if tool_id == "writefile" {
+                                            let mut guard = self.pending_writes.write().await;
+                                            guard.remove(&req_id);
+                                        }
+                                        
                                         context = append_context(&context, result_value);
                                     }
                                     Ok(false) => {
@@ -225,52 +258,6 @@ struct ToolCall {
     input: Value,
 }
 
-struct Model {
-    config: Config,
-}
-
-impl Model {
-    fn new(config: Config) -> Self {
-        Self { config }
-    }
-    
-    async fn call(&self, prompt: String) -> String {
-        let client = reqwest::Client::new();
-        let request = OllamaRequest {
-            model: self.config.ollama_model.clone(),
-            prompt,
-            stream: self.config.ollama_stream,
-        };
-        
-        match client
-            .post(self.config.ollama_api_url())
-            .json(&request)
-            .send()
-            .await
-        {
-            Ok(response) => {
-                match response.json::<OllamaResponse>().await {
-                    Ok(resp) => resp.response,
-                    Err(_) => "error parsing ollama response".to_string(),
-                }
-            }
-            Err(e) => format!("error calling ollama: {}", e),
-        }
-    }
-}
-
-#[derive(Serialize)]
-struct OllamaRequest {
-    model: String,
-    prompt: String,
-    stream: bool,
-}
-
-#[derive(Deserialize)]
-struct OllamaResponse {
-    response: String,
-}
-
 fn context_to_string(context: &Value) -> String {
     match context {
         Value::String(s) => s.clone(),
@@ -312,7 +299,8 @@ mod tests {
         let config = Config::from_env();
         let gate = Arc::new(Gate::new(config.clone()));
         let pending = Arc::new(RwLock::new(HashMap::new()));
-        let loop_handler = Loop::new(registry, config, gate, pending);
+        let pending_writes = Arc::new(RwLock::new(HashMap::new()));
+        let loop_handler = Loop::new(registry, config, gate, pending, pending_writes);
         
         let prompt = "test task";
         let context = Value::Null;
@@ -329,7 +317,8 @@ mod tests {
         let config = Config::from_env();
         let gate = Arc::new(Gate::new(config.clone()));
         let pending = Arc::new(RwLock::new(HashMap::new()));
-        let loop_handler = Loop::new(registry, config, gate, pending);
+        let pending_writes = Arc::new(RwLock::new(HashMap::new()));
+        let loop_handler = Loop::new(registry, config, gate, pending, pending_writes);
         
         let output = r#"{"tool": "readfile", "input": {"path": "/test.rs"}}"#;
         
@@ -346,7 +335,8 @@ mod tests {
         let config = Config::from_env();
         let gate = Arc::new(Gate::new(config.clone()));
         let pending = Arc::new(RwLock::new(HashMap::new()));
-        let loop_handler = Loop::new(registry, config, gate, pending);
+        let pending_writes = Arc::new(RwLock::new(HashMap::new()));
+        let loop_handler = Loop::new(registry, config, gate, pending, pending_writes);
         
         let output = "just a regular response without tool call";
         

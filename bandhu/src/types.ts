@@ -7,6 +7,8 @@ export interface ChatMessage {
     error?: string;
     messages?: ChatMessage[];
     iterations?: number;
+    diff?: string;
+    input?: unknown;
 }
 
 export interface ApprovalRequestMsg {

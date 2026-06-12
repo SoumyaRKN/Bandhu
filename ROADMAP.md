@@ -168,11 +168,11 @@ Build a local-first VS Code coding AI agent (Bandhu) that runs mostly free, work
 
 | # | Task | Description | Status |
 |---|------|-------------|--------|
-| 82 | Implement Diff Generator | Create tool to generate unified diff patch from proposed file changes | `Pending` |
-| 83 | Modify WriteFile Tool | Change `Writefile` to produce diff patch instead of direct write | `Pending` |
-| 84 | Create Diff View UI | Implement VS Code webview panel to display unified diffs | `Pending` |
-| 85 | Add Apply Patch Tool | Create backend tool to apply diff patch after user approval | `Pending` |
-| 86 | Add Reject Workflow | Implement workflow to discard changes when user rejects diff | `Pending` |
+| 82 | Implement Diff Generator | Create tool to generate unified diff patch from proposed file changes | `Completed` |
+| 83 | Modify WriteFile Tool | Change `Writefile` to produce diff patch instead of direct write | `Completed` |
+| 84 | Create Diff View UI | Implement VS Code webview panel to display unified diffs | `Completed` |
+| 85 | Add Apply Patch Tool | Create backend tool to apply diff patch after user approval | `Completed` |
+| 86 | Add Reject Workflow | Implement workflow to discard changes when user rejects diff | `Completed` |
 | 87 | Add Line-by-Line Approval | Support approving/rejecting individual change hunks within a diff | `Pending` |
 | 88 | Add Edit Suggestions | Allow user to manually edit proposed changes before applying | `Pending` |
 | 89 | Test Diff Workflow | End-to-end test: model proposes change → diff shown → user approves → changes applied | `Pending` |
@@ -326,7 +326,7 @@ These are high-priority items discovered during the audit that block further dev
 | P0 | `main.rs` missing `Arc` import | `backend/src/main.rs:1` | Add `use std::sync::Arc;` import | `Completed` |
 | P0 | No `README.md` at project root | Project root | Create README.md | `Completed` |
 | P1 | Ollama client is inline in `queue.rs` instead of `model.rs` | `backend/src/queue.rs:219` | Extract into `backend/src/model.rs` | `Pending` |
-| P1 | `writefile` overwrites directly — no diff/patch system | `backend/src/writefile.rs` | Implement diff generation and patch application | `Pending` |
+| P1 | `writefile` overwrites directly — no diff/patch system | `backend/src/writefile.rs` | Implement diff generation and patch application | `Completed` |
 | P1 | No `BackendError` enum — errors are bare `String`s | Throughout backend | Create typed error enum | `Pending` |
 | P1 | No JSON Schema validation on tool inputs | `backend/src/tool.rs` | Add `validate(input) -> Result<()>` to `Tool` trait | `Pending` |
 | P2 | Extension routing types mismatch — `types.ts` `id` field vs backend `request_id` | `bandhu/src/types.ts`, `backend/src/queue.rs` | Align field names | `Pending` |
