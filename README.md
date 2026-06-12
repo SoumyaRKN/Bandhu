@@ -201,6 +201,7 @@ Set these variables in your shell before launching VS Code, or load `bandhu/.env
 | `BANDHU_CHAT_TIMEOUT_MS` | `120000` | Milliseconds before `/chat` requests are aborted |
 | `BANDHU_CHAT_RETRIES` | `2` | Number of retry attempts for `/chat` failures after the first attempt |
 | `BANDHU_CHAT_RETRY_DELAY_MS` | `500` | Milliseconds to wait between `/chat` retry attempts |
+| `BANDHU_CHAT_STREAMING` | `true` | Use the backend `/chat/stream` SSE endpoint for incremental chat messages |
 | `BANDHU_COMMAND_TIMEOUT_MS` | `30000` | Milliseconds before `/approve` requests are aborted |
 | `BANDHU_COMMAND_RETRIES` | `1` | Number of retry attempts for `/approve` failures after the first attempt |
 | `BANDHU_COMMAND_RETRY_DELAY_MS` | `500` | Milliseconds to wait between `/approve` retry attempts |

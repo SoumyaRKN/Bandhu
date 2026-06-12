@@ -9,7 +9,7 @@ use std::collections::HashMap;
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::sync::Arc;
-use tokio::sync::{oneshot, RwLock};
+use tokio::sync::{mpsc, oneshot, RwLock};
 
 pub struct Loop {
     registry: ToolRegistry,
@@ -39,6 +39,18 @@ impl Loop {
     }
 
     pub async fn run(&self, request: Value) -> Value {
+        let (tx, mut rx) = mpsc::channel(128);
+        let result = self.runwithsink(request, tx).await;
+        let mut messages = vec![];
+        while let Some(msg) = rx.recv().await {
+            if msg.get("type").and_then(Value::as_str) != Some("complete") {
+                messages.push(msg);
+            }
+        }
+        result
+    }
+
+    pub async fn runwithsink(&self, request: Value, sink: mpsc::Sender<Value>) -> Value {
         let prompt = request
             .get("prompt")
             .and_then(Value::as_str)
@@ -79,11 +91,13 @@ impl Loop {
                         "type": "error",
                         "error": err.to_string()
                     }));
-                    return json!({
+                    let complete = json!({
                         "type": "complete",
                         "messages": messages,
                         "iterations": iteration
                     });
+                    sendmessage(&sink, &complete).await;
+                    return complete;
                 }
             };
             log::debug!("model output ({} chars): {}", output.len(), output);
@@ -101,22 +115,26 @@ impl Loop {
                     Some(tool) => {
                         if let Err(e) = self.validateinput(tool_id, &tool_call.input) {
                             log::error!("tool validation failed: tool='{}', error={}", tool_id, e);
-                            messages.push(json!({
+                            let msg = json!({
                                 "type": "tool_error",
                                 "tool": tool_id,
                                 "error": e.to_string()
-                            }));
+                            });
+                            messages.push(msg.clone());
+                            sendmessage(&sink, &msg).await;
                             continue;
                         }
 
                         if tool.requires() {
                             if let Err(e) = self.gate.check(&tool_call.input, tool_id) {
                                 log::error!("safety filter rejected tool '{}': {}", tool_id, e);
-                                messages.push(json!({
+                                let msg = json!({
                                     "type": "tool_error",
                                     "tool": tool_id,
                                     "error": e
-                                }));
+                                });
+                                messages.push(msg.clone());
+                                sendmessage(&sink, &msg).await;
                                 continue;
                             }
 
@@ -149,6 +167,7 @@ impl Loop {
                                     "pattern": install
                                 });
                                 messages.push(approval_msg.clone());
+                                sendmessage(&sink, &approval_msg).await;
                                 log::info!(
                                     "approval requested: id='{}', tool='{}'",
                                     req_id,
@@ -278,10 +297,12 @@ impl Loop {
                     }
                     None => {
                         log::warn!("tool not found: '{}'", tool_id);
-                        messages.push(json!({
+                        let msg = json!({
                             "type": "error",
                             "error": format!("tool not found: {}", tool_id)
-                        }));
+                        });
+                        messages.push(msg.clone());
+                        sendmessage(&sink, &msg).await;
                     }
                 }
             }
@@ -293,11 +314,13 @@ impl Loop {
             }));
 
             log::info!("loop complete after {} iterations", iteration);
-            return json!({
+            let complete = json!({
                 "type": "complete",
                 "messages": messages,
                 "iterations": iteration
             });
+            sendmessage(&sink, &complete).await;
+            return complete;
         }
 
         log::warn!("max iterations reached: {}", max_iterations);
@@ -306,11 +329,14 @@ impl Loop {
             "error": "max iterations reached"
         }));
 
-        json!({
+        let complete = json!({
             "type": "complete",
             "messages": messages,
             "iterations": max_iterations
-        })
+        });
+        sendmessage(&sink, &complete).await;
+
+        complete
     }
 
     fn logapproval(&self, id: &str, tool: &str, decision: &str) {
@@ -401,6 +427,10 @@ impl Loop {
 struct ToolCall {
     id: String,
     input: Value,
+}
+
+async fn sendmessage(sink: &mpsc::Sender<Value>, msg: &Value) {
+    let _ = sink.send(msg.clone()).await;
 }
 
 fn context_to_string(context: &Value) -> String {

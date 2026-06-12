@@ -1,4 +1,4 @@
-import { ChatRequest, ChatResponse, ApprovalRequestMsg } from './types';
+import { ChatRequest, ChatResponse, ApprovalRequestMsg, ChatMessage } from './types';
 
 const chatms = intenv('BANDHU_CHAT_TIMEOUT_MS', 120000);
 const chatretries = intenv('BANDHU_CHAT_RETRIES', 2);
@@ -21,6 +21,58 @@ export async function sendchat(prompt: string): Promise<ChatResponse> {
         throw new Error(`chat failed: ${res.status}`);
     }
     return data;
+}
+
+export async function sendchatstream(prompt: string, onmessage: (msg: ChatMessage) => void): Promise<ChatResponse> {
+    const res = await postjson(
+        `${backend}/chat/stream`,
+        { prompt } as ChatRequest,
+        chatms,
+        0,
+        chatdelay
+    );
+    if (!res.ok) {
+        throw new Error(`chat stream failed: ${res.status}`);
+    }
+    if (!res.body) {
+        throw new Error('chat stream body missing');
+    }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let lastmsg: ChatMessage | undefined;
+
+    while (true) {
+        const chunk = await reader.read();
+        if (chunk.done) {
+            break;
+        }
+        buffer += decoder.decode(chunk.value, { stream: true });
+        const parts = buffer.split('\n\n');
+        buffer = parts.pop() || '';
+        for (const part of parts) {
+            const msg = parsesseline(part);
+            if (msg) {
+                lastmsg = msg;
+                onmessage(msg);
+            }
+        }
+    }
+
+    const tail = decoder.decode();
+    if (tail) {
+        const msg = parsesseline(tail);
+        if (msg) {
+            lastmsg = msg;
+            onmessage(msg);
+        }
+    }
+
+    return {
+        response: lastmsg?.content || '',
+        messages: lastmsg ? [lastmsg] : []
+    };
 }
 
 export async function approve(req: ApprovalRequestMsg): Promise<boolean> {
@@ -78,6 +130,18 @@ async function postjson(url: string, body: unknown, timeout: number, retries: nu
     }
 
     throw last instanceof Error ? last : new Error('request failed');
+}
+
+function parsesseline(part: string): ChatMessage | undefined {
+    const data = part
+        .split('\n')
+        .filter(line => line.startsWith('data:'))
+        .map(line => line.slice(5).trim())
+        .join('\n');
+    if (!data) {
+        return undefined;
+    }
+    return JSON.parse(data) as ChatMessage;
 }
 
 function intenv(name: string, fallback: number): number {

@@ -189,8 +189,8 @@ Build a local-first VS Code coding AI agent (Bandhu) that runs mostly free, work
 | 91 | Fix Approval Flow in Controller | Wire `handleMessage` to webview; send `tool_approval` messages to webview panel | `Completed` |
 | 92 | Add Webview Approval JS | Add JavaScript in webview HTML to receive approval messages and show UI buttons | `Completed` |
 | 93 | Replace InputBox with Chat UI | Replace `vscode.window.showInputBox` with proper webview chat input | `Completed` |
-| 94 | Stream Responses Backend | Add SSE streaming support to `/chat` endpoint | `Pending` |
-| 95 | Stream Responses Extension | Update extension to consume SSE stream and render tokens incrementally | `Pending` |
+| 94 | Stream Responses Backend | Add SSE streaming support to `/chat` endpoint | `Completed` |
+| 95 | Stream Responses Extension | Update extension to consume SSE stream and render tokens incrementally | `Completed` |
 | 96 | Add Request Cancellation | Support cancelling in-flight requests when user sends new input | `Pending` |
 | 143 | Add Fetch Timeout And Retry | Configure extension `/chat` and `/approve` calls with environment-controlled timeout, retry count, and retry delay | `Completed` |
 
@@ -333,5 +333,5 @@ These are high-priority items discovered during the audit that block further dev
 | P1 | No `BackendError` enum — errors are bare `String`s | Throughout backend | Create typed error enum | `Completed` |
 | P1 | No JSON Schema validation on tool inputs | `backend/src/tool.rs` | Add `validate(input) -> Result<()>` to `Tool` trait | `Completed` |
 | P2 | Extension routing types mismatch — `types.ts` `id` field vs backend `request_id` | `bandhu/src/types.ts`, `backend/src/queue.rs` | Align field names | `Completed` |
-| P2 | No streaming support for `/chat` | `backend/src/main.rs`, `bandhu/src/api.ts` | Implement SSE streaming | `Pending` |
+| P2 | No streaming support for `/chat` | `backend/src/main.rs`, `bandhu/src/api.ts` | Implement SSE streaming | `Completed` |
 | P2 | `gate.rs` does package install detection only via broad command filter | `backend/src/gate.rs` | Add specific package manager pattern matching | `Completed` |

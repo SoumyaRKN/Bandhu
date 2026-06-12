@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { Statusbar } from './status';
 import { ChatPanel } from './chatui';
-import { sendchat, approve, reject } from './api';
+import { sendchat, sendchatstream, approve, reject } from './api';
 import { ChatMessage, ApprovalRequestMsg, WebviewMsg } from './types';
 import { fromEnv } from './config';
 
@@ -31,9 +31,13 @@ export class Controller implements vscode.Disposable {
         if (msg.type === 'send' && msg.text) {
             this.status.setbusy();
             try {
-                const res = await sendchat(msg.text);
+                if (this.config.streaming) {
+                    await sendchatstream(msg.text, resmsg => this.chat.append(resmsg));
+                } else {
+                    const res = await sendchat(msg.text);
+                    this.show(res);
+                }
                 this.status.setidle();
-                this.show(res);
             } catch (e) {
                 this.status.seterror();
                 this.chat.append({ type: 'error', error: String(e) } as ChatMessage);

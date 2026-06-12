@@ -17,7 +17,7 @@ The extension supports two approval UI modes:
 2. The tool input is validated against its schema and size limit.
 3. The safety filter scans the tool input against forbidden commands and paths.
 4. If the input is blocked, the loop returns a `tool_error` message.
-5. If the input passes, the backend emits a `tool_approval` message in the `/chat` response `messages` array.
+5. If the input passes, the backend emits a `tool_approval` message through `/chat/stream` or includes it in the `/chat` response `messages` array.
 6. The controller forwards returned messages to the webview panel.
 7. The webview displays inline approval buttons (Approve/Reject) with tool details:
    - Tool name and target path/command
@@ -69,7 +69,7 @@ The gate checks `BANDHU_FORBIDDEN_CMDS`, `BANDHU_INSTALL_CMDS`, and `BANDHU_FORB
 
 ## Messages
 
-The `/chat` response includes `response` for compatibility and `messages` for structured rendering. The controller appends each returned message to the webview panel. The loop emits these approval-related message types:
+The extension uses `/chat/stream` by default to render each `tool_approval` message as soon as the backend emits it. With `BANDHU_CHAT_STREAMING=false`, the extension uses `/chat` and receives the same messages after the request completes.
 
 | Type | Meaning |
 |---|---|

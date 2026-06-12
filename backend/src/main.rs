@@ -1,6 +1,7 @@
 use axum::{
     extract::{Json, State},
     http::{HeaderValue, Method, StatusCode},
+    response::sse::{Event, KeepAlive, Sse},
     routing::{get, post},
     Router,
 };
@@ -8,8 +9,11 @@ use env_logger;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
+use std::convert::Infallible;
 use std::sync::Arc;
-use tokio::sync::{oneshot, RwLock};
+use tokio::sync::{mpsc, oneshot, RwLock};
+use tokio_stream::wrappers::ReceiverStream;
+use tokio_stream::StreamExt;
 use tower_http::cors::{Any, CorsLayer};
 
 mod applypatch;
@@ -133,6 +137,34 @@ async fn chat_handler(
         response: response_text,
         messages,
     })
+}
+
+async fn chatstream_handler(
+    State(state): State<AppState>,
+    Json(payload): Json<ChatRequest>,
+) -> Sse<impl tokio_stream::Stream<Item = Result<Event, Infallible>>> {
+    let registry = (*state.registry).clone();
+    let config = Config::from_env();
+    let gate = state.gate.clone();
+    let pending = state.pending_approvals.clone();
+    let pending_writes = state.pending_writes.clone();
+    let request_value = serde_json::json!({
+        "prompt": payload.prompt,
+    });
+    let (tx, rx) = mpsc::channel(32);
+
+    tokio::spawn(async move {
+        let loop_handler = Loop::new(registry, config, gate, pending, pending_writes);
+        let _ = loop_handler.runwithsink(request_value, tx).await;
+    });
+
+    let stream = ReceiverStream::new(rx).map(|msg| {
+        let data = serde_json::to_string(&msg)
+            .unwrap_or_else(|_| r#"{"type":"error","error":"stream encode failed"}"#.to_string());
+        Ok(Event::default().event("message").data(data))
+    });
+
+    Sse::new(stream).keep_alive(KeepAlive::default())
 }
 
 async fn call_handler(
@@ -262,6 +294,7 @@ async fn main() {
     let app = Router::new()
         .route("/health", get(health_handler))
         .route("/chat", post(chat_handler))
+        .route("/chat/stream", post(chatstream_handler))
         .route("/call", post(call_handler))
         .route("/context", post(context_handler))
         .route("/approve", post(approve_handler))

@@ -267,6 +267,53 @@ async function sendchat(prompt) {
   }
   return data;
 }
+async function sendchatstream(prompt, onmessage) {
+  const res = await postjson(
+    `${backend}/chat/stream`,
+    { prompt },
+    chatms,
+    0,
+    chatdelay
+  );
+  if (!res.ok) {
+    throw new Error(`chat stream failed: ${res.status}`);
+  }
+  if (!res.body) {
+    throw new Error("chat stream body missing");
+  }
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let lastmsg;
+  while (true) {
+    const chunk = await reader.read();
+    if (chunk.done) {
+      break;
+    }
+    buffer += decoder.decode(chunk.value, { stream: true });
+    const parts = buffer.split("\n\n");
+    buffer = parts.pop() || "";
+    for (const part of parts) {
+      const msg = parsesseline(part);
+      if (msg) {
+        lastmsg = msg;
+        onmessage(msg);
+      }
+    }
+  }
+  const tail = decoder.decode();
+  if (tail) {
+    const msg = parsesseline(tail);
+    if (msg) {
+      lastmsg = msg;
+      onmessage(msg);
+    }
+  }
+  return {
+    response: lastmsg?.content || "",
+    messages: lastmsg ? [lastmsg] : []
+  };
+}
 async function approve(req) {
   const res = await postjson(
     `${backend}/approve`,
@@ -317,6 +364,13 @@ async function postjson(url, body, timeout, retries, delay) {
   }
   throw last instanceof Error ? last : new Error("request failed");
 }
+function parsesseline(part) {
+  const data = part.split("\n").filter((line) => line.startsWith("data:")).map((line) => line.slice(5).trim()).join("\n");
+  if (!data) {
+    return void 0;
+  }
+  return JSON.parse(data);
+}
 function intenv(name, fallback) {
   const raw = process.env[name];
   const value = Number.parseInt(raw || "", 10);
@@ -334,7 +388,8 @@ function fromEnv() {
     approvalTimeoutSecs: parseInt(process.env.BANDHU_APPROVAL_TIMEOUT_SECS || "300", 10),
     forbiddenCommands: (process.env.BANDHU_FORBIDDEN_CMDS || "").split(",").map((s) => s.trim().toLowerCase()).filter(Boolean),
     forbiddenPaths: (process.env.BANDHU_FORBIDDEN_PATHS || "").split(",").map((s) => s.trim()).filter(Boolean),
-    placeholder: process.env.BANDHU_CHAT_PLACEHOLDER || "Ask Bandhu..."
+    placeholder: process.env.BANDHU_CHAT_PLACEHOLDER || "Ask Bandhu...",
+    streaming: process.env.BANDHU_CHAT_STREAMING !== "false"
   };
 }
 
@@ -361,9 +416,13 @@ var Controller = class {
     if (msg.type === "send" && msg.text) {
       this.status.setbusy();
       try {
-        const res = await sendchat(msg.text);
+        if (this.config.streaming) {
+          await sendchatstream(msg.text, (resmsg) => this.chat.append(resmsg));
+        } else {
+          const res = await sendchat(msg.text);
+          this.show(res);
+        }
         this.status.setidle();
-        this.show(res);
       } catch (e) {
         this.status.seterror();
         this.chat.append({ type: "error", error: String(e) });

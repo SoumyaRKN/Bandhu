@@ -13,6 +13,7 @@ All configurable parameters are set via environment variables or a `.env` file i
 | `BANDHU_CHAT_TIMEOUT_MS` | `120000` | Milliseconds before `/chat` requests are aborted. Example: `60000` for a one-minute cap. |
 | `BANDHU_CHAT_RETRIES` | `2` | Number of retry attempts for `/chat` request failures after the first attempt. Example: `0` disables retries. |
 | `BANDHU_CHAT_RETRY_DELAY_MS` | `500` | Milliseconds to wait between `/chat` retry attempts. Example: `1000` for a one-second backoff. |
+| `BANDHU_CHAT_STREAMING` | `true` | Use the backend `/chat/stream` SSE endpoint for incremental chat messages. Set to `false` to use the compatibility `/chat` response. |
 | `BANDHU_COMMAND_TIMEOUT_MS` | `30000` | Milliseconds before `/approve` requests are aborted. Example: `10000` for a ten-second cap. |
 | `BANDHU_COMMAND_RETRIES` | `1` | Number of retry attempts for `/approve` request failures after the first attempt. Example: `0` disables retries. |
 | `BANDHU_COMMAND_RETRY_DELAY_MS` | `500` | Milliseconds to wait between `/approve` retry attempts. Example: `1000` for a one-second backoff. |
@@ -23,7 +24,7 @@ All configurable parameters are set via environment variables or a `.env` file i
 | `BANDHU_STATUS_BUSY_TOOLTIP` | `Working` | Tooltip shown while a chat request is running. Example: `Bandhu is working`. |
 | `BANDHU_STATUS_ERROR_TOOLTIP` | `Error` | Tooltip shown after a chat request fails. Example: `Bandhu request failed`. |
 
-The extension uses this endpoint for `/chat` and `/approve`. `/chat` returns a compatibility `response` string and a structured `messages` array that the controller forwards to the webview.
+The extension uses `/chat/stream` for incremental SSE messages when `BANDHU_CHAT_STREAMING=true`. It falls back to `/chat` only when streaming is disabled. `/chat` returns a compatibility `response` string and a structured `messages` array that the controller forwards to the webview.
 
 The `Bandhu: Open Chat` command and status bar item open the webview chat panel. User prompts are submitted from the webview input, not from a VS Code InputBox.
 
@@ -140,6 +141,7 @@ BANDHU_CHAT_PLACEHOLDER=Ask Bandhu...
 BANDHU_CHAT_TIMEOUT_MS=120000
 BANDHU_CHAT_RETRIES=2
 BANDHU_CHAT_RETRY_DELAY_MS=500
+BANDHU_CHAT_STREAMING=true
 BANDHU_COMMAND_TIMEOUT_MS=30000
 BANDHU_COMMAND_RETRIES=1
 BANDHU_COMMAND_RETRY_DELAY_MS=500

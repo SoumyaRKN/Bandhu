@@ -92,12 +92,13 @@ result   — ok/err enum used across all operations
 
 ### api endpoints
 
-| method | path     | purpose                                   |
-|--------|----------|-------------------------------------------|
-| post   | /health  | backend liveness check                    |
-| post   | /chat    | accept prompt, run loop, return response and message array |
-| post   | /call    | execute a single tool                     |
-| post   | /context | build context for a given task description |
+| method | path           | purpose                                                    |
+|--------|----------------|------------------------------------------------------------|
+| post   | /health        | backend liveness check                                     |
+| post   | /chat          | accept prompt, run loop, return response and message array |
+| post   | /chat/stream   | accept prompt, stream message array events as SSE          |
+| post   | /call          | execute a single tool                                      |
+| post   | /context       | build context for a given task description                 |
 
 ### data flow: /chat endpoint
 
@@ -111,6 +112,7 @@ result   — ok/err enum used across all operations
    e. collect output, append to context
    f. repeat until model produces final answer
 4. return compatibility response text plus accumulated message array to extension
+5. `/chat/stream` emits each accumulated message as an SSE event while the same loop is running
 
 ---
 
@@ -245,7 +247,8 @@ Goal: keep context under 8k tokens.
 
 - use `fetch` with timeout
 - retry on network error (max 2 retries)
-- stream SSE when endpoint supports `/chat/stream`
+- stream SSE from `/chat/stream` when `BANDHU_CHAT_STREAMING=true`
+- fall back to `/chat` response when streaming is disabled
 - queue multiple requests; drop stale ones on new user input
 
 ### ollama strategy
