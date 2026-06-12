@@ -74,6 +74,8 @@ The extension uses this endpoint for `/chat` and `/approve`. `/chat` returns a c
 |---|---|---|
 | `BANDHU_OLLAMA_TIMEOUT_SECS` | `120` | Max seconds to wait for a single Ollama request before timing out. |
 
+Ollama request failures are surfaced as typed backend errors. Connection failures use the model error path, HTTP status failures use HTTP or model errors, response decoding failures use parse errors, and elapsed requests use timeout errors configured by `BANDHU_OLLAMA_TIMEOUT_SECS`.
+
 ---
 
 ## Prompt Template

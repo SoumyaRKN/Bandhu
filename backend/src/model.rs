@@ -1,4 +1,5 @@
 use crate::config::Config;
+use crate::error::{BackendError, BackendResult};
 use serde::{Deserialize, Serialize};
 
 pub struct Model {
@@ -15,26 +16,51 @@ impl Model {
         Self { config, client }
     }
 
-    pub async fn call(&self, prompt: String) -> String {
+    pub async fn call(&self, prompt: String) -> BackendResult<String> {
         let request = OllamaRequest {
             model: self.config.ollama_model.clone(),
             prompt,
             stream: self.config.ollama_stream,
         };
 
-        match self
+        let res = self
             .client
             .post(self.config.ollama_api_url())
             .json(&request)
             .send()
             .await
-        {
-            Ok(response) => match response.json::<OllamaResponse>().await {
-                Ok(resp) => resp.response,
-                Err(_) => "error parsing ollama response".to_string(),
-            },
-            Err(e) => format!("error calling ollama: {}", e),
+            .map_err(Self::error)?
+            .error_for_status()
+            .map_err(Self::error)?;
+        let body = res
+            .json::<OllamaResponse>()
+            .await
+            .map_err(|err| BackendError::Parse(format!("ollama response: {}", err)))?;
+        Ok(body.response)
+    }
+
+    fn error(err: reqwest::Error) -> BackendError {
+        if err.is_timeout() {
+            return BackendError::Timeout(format!("ollama request timed out: {}", err));
         }
+
+        if let Some(code) = err.status() {
+            return Self::status(code);
+        }
+
+        if err.is_connect() {
+            return BackendError::Model(format!("ollama connection failed: {}", err));
+        }
+
+        BackendError::Http(format!("ollama request failed: {}", err))
+    }
+
+    fn status(code: reqwest::StatusCode) -> BackendError {
+        if code == reqwest::StatusCode::NOT_FOUND {
+            return BackendError::Model(format!("ollama model or endpoint not found: {}", code));
+        }
+
+        BackendError::Http(format!("ollama returned status: {}", code))
     }
 }
 
@@ -66,5 +92,12 @@ mod tests {
 
         assert_eq!(req.stream, false);
         assert_eq!(req.model, "test-model");
+    }
+
+    #[test]
+    fn classifies404() {
+        let err = Model::status(reqwest::StatusCode::NOT_FOUND);
+
+        assert!(matches!(err, BackendError::Model(_)));
     }
 }

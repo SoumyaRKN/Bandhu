@@ -71,7 +71,21 @@ impl Loop {
             log::info!("loop iteration {}/{}", iteration, max_iterations);
             let full_prompt = self.build_prompt(&prompt, &context);
             log::debug!("prompt built ({} chars)", full_prompt.len());
-            let output = self.model.call(full_prompt).await;
+            let output = match self.model.call(full_prompt).await {
+                Ok(text) => text,
+                Err(err) => {
+                    log::error!("model call failed: {}", err);
+                    messages.push(json!({
+                        "type": "error",
+                        "error": err.to_string()
+                    }));
+                    return json!({
+                        "type": "complete",
+                        "messages": messages,
+                        "iterations": iteration
+                    });
+                }
+            };
             log::debug!("model output ({} chars): {}", output.len(), output);
 
             if let Some(tool_call) = self.parse_tool_call(&output) {

@@ -255,6 +255,7 @@ Goal: keep context under 8k tokens.
 - non-streaming for `/api/generate`
 - streaming for `/api/chat` when implemented
 - timeout: 120 seconds per request
+- failures are returned as typed backend errors for timeout, connection, status, and parse cases
 
 ---
 

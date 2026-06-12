@@ -95,13 +95,13 @@ Build a local-first VS Code coding AI agent (Bandhu) that runs mostly free, work
 
 | # | Task | Description | Status |
 |---|------|-------------|--------|
-| 42 | Define Ollama Client | Create `backend/src/model.rs` with `OllamaClient` struct for communicating with Ollama API | `Pending` |
-| 43 | Extract Model from Queue | Move `Model` struct and Ollama request/response types from `queue.rs` into `model.rs` | `Pending` |
+| 42 | Define Ollama Client | Create `backend/src/model.rs` with `OllamaClient` struct for communicating with Ollama API | `Completed` |
+| 43 | Extract Model from Queue | Move `Model` struct and Ollama request/response types from `queue.rs` into `model.rs` | `Completed` |
 | 44 | Implement Generate Endpoint | Create `POST /api/generate` endpoint that accepts prompt and sends to Ollama | `Completed` (inside `/chat`) |
 | 45 | Implement Chat Endpoint | Create `POST /api/chat` endpoint for multi-turn conversations | `Completed` |
 | 46 | Add Request Timeout | Configure timeout for Ollama API requests in `reqwest::Client::builder()` | `Completed` |
 | 47 | Test End-to-End Flow | Verify: Extension → Backend → Ollama → Backend → Extension works end-to-end | `Pending` |
-| 48 | Add Error Handling | Handle Ollama connection errors, model not found, and timeout scenarios with typed errors | `Pending` |
+| 48 | Add Error Handling | Handle Ollama connection errors, model not found, and timeout scenarios with typed errors | `Completed` |
 
 ---
 
@@ -327,7 +327,7 @@ These are high-priority items discovered during the audit that block further dev
 | P0 | `queue.rs` unused import | `backend/src/queue.rs:2` | Remove unused `ApprovalRequest` import | `Completed` |
 | P0 | `main.rs` missing `Arc` import | `backend/src/main.rs:1` | Add `use std::sync::Arc;` import | `Completed` |
 | P0 | No `README.md` at project root | Project root | Create README.md | `Completed` |
-| P1 | Ollama client is inline in `queue.rs` instead of `model.rs` | `backend/src/queue.rs:219` | Extract into `backend/src/model.rs` | `Pending` |
+| P1 | Ollama client is inline in `queue.rs` instead of `model.rs` | `backend/src/queue.rs:219` | Extract into `backend/src/model.rs` | `Completed` |
 | P1 | `writefile` overwrites directly — no diff/patch system | `backend/src/writefile.rs` | Implement diff generation and patch application | `Completed` |
 | P1 | No `BackendError` enum — errors are bare `String`s | Throughout backend | Create typed error enum | `Completed` |
 | P1 | No JSON Schema validation on tool inputs | `backend/src/tool.rs` | Add `validate(input) -> Result<()>` to `Tool` trait | `Completed` |
