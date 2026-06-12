@@ -30,10 +30,10 @@ impl ContextBuilder {
         for keyword in keywords {
             match crate::search::Search::execute_search(
                 &keyword,
-                &std::env::current_dir()
+                std::env::current_dir()
                     .map_err(|e| e.to_string())?
                     .to_string_lossy()
-                    .to_string(),
+                    .as_ref(),
                 &self.config,
             ) {
                 Ok(result) => {

@@ -16,25 +16,25 @@ Bandhu uses diff previews to make file edits reviewable before execution.
 
 ```json
 {
-  "type": "tool_approval",
-  "id": "writefile-1",
-  "tool": "writefile",
-  "input": {
-    "path": "docs/example.md",
-    "content": "# Example\n"
-  },
-  "diff": "--- a/docs/example.md\n+++ b/docs/example.md\n+# Example\n"
+    "type": "tool_approval",
+    "id": "writefile-1",
+    "tool": "writefile",
+    "input": {
+        "path": "docs/example.md",
+        "content": "# Example\n"
+    },
+    "diff": "--- a/docs/example.md\n+++ b/docs/example.md\n+# Example\n"
 }
 ```
 
 ## Configuration
 
-| Variable | Default | Description |
-|---|---|---|
-| `BANDHU_SCHEMA_VALIDATE` | `true` | Validates diff-producing tool input before approval. |
-| `BANDHU_TOOL_INPUT_LIMIT` | `65536` | Maximum serialized input size for the tool call. |
-| `BANDHU_FORBIDDEN_PATHS` | _(empty)_ | Comma-separated path substrings blocked before diff approval. |
-| `BANDHU_APPROVAL_TIMEOUT_SECS` | `300` | Intended approval timeout window for pending decisions. |
+| Variable                       | Default   | Description                                                   |
+| ------------------------------ | --------- | ------------------------------------------------------------- |
+| `BANDHU_SCHEMA_VALIDATE`       | `true`    | Validates diff-producing tool input before approval.          |
+| `BANDHU_TOOL_INPUT_LIMIT`      | `65536`   | Maximum serialized input size for the tool call.              |
+| `BANDHU_FORBIDDEN_PATHS`       | _(empty)_ | Comma-separated path substrings blocked before diff approval. |
+| `BANDHU_APPROVAL_TIMEOUT_SECS` | `300`     | Intended approval timeout window for pending decisions.       |
 
 ## Limits
 

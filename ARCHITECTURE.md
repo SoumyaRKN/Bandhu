@@ -71,15 +71,15 @@ Bandhu is a local-first VS Code coding AI agent. The system runs entirely on the
 
 ### module map
 
-| module     | purpose                                      |
-|------------|----------------------------------------------|
-| queue      | manages conversation and tool-call loop      |
-| tool       | base trait and tool implementations          |
-| context    | selects relevant files for the model         |
-| safety     | command filtering and approval enforcement   |
-| api        | HTTP endpoints and request routing           |
-| model      | Ollama client abstraction                    |
-| diff       | unified diff generation and application      |
+| module     | purpose                                    |
+| ---------- | ------------------------------------------ |
+| queue      | manages conversation and tool-call loop    |
+| tool       | base trait and tool implementations        |
+| context    | selects relevant files for the model       |
+| safety     | command filtering and approval enforcement |
+| api        | HTTP endpoints and request routing         |
+| model      | Ollama client abstraction                  |
+| diff       | unified diff generation and application    |
 | applypatch | patch application tool                     |
 
 ### type definitions
@@ -92,13 +92,13 @@ result   — ok/err enum used across all operations
 
 ### api endpoints
 
-| method | path           | purpose                                                    |
-|--------|----------------|------------------------------------------------------------|
-| post   | /health        | backend liveness check                                     |
-| post   | /chat          | accept prompt, run loop, return response and message array |
-| post   | /chat/stream   | accept prompt, stream message array events as SSE          |
-| post   | /call          | execute a single tool                                      |
-| post   | /context       | build context for a given task description                 |
+| method | path         | purpose                                                    |
+| ------ | ------------ | ---------------------------------------------------------- |
+| post   | /health      | backend liveness check                                     |
+| post   | /chat        | accept prompt, run loop, return response and message array |
+| post   | /chat/stream | accept prompt, stream message array events as SSE          |
+| post   | /call        | execute a single tool                                      |
+| post   | /context     | build context for a given task description                 |
 
 ### data flow: /chat endpoint
 
@@ -120,13 +120,13 @@ result   — ok/err enum used across all operations
 
 ### module map
 
-| module      | purpose                                       |
-|-------------|-----------------------------------------------|
-| api         | HTTP client for backend communication         |
-| chatui      | webview panel for conversation display        |
-| status      | status bar item showing agent state           |
-| approval    | quick-pick modal for tool approval            |
-| controller  | orchestrates extension lifecycle             |
+| module     | purpose                                |
+| ---------- | -------------------------------------- |
+| api        | HTTP client for backend communication  |
+| chatui     | webview panel for conversation display |
+| status     | status bar item showing agent state    |
+| approval   | quick-pick modal for tool approval     |
+| controller | orchestrates extension lifecycle       |
 
 ### Activation Sequence
 
@@ -157,16 +157,16 @@ trait:
 
 ### built-in tools
 
-| id         | purpose                        | requires approval |
-|------------|--------------------------------|-------------------|
-| readfile   | read file content by path      | no                |
-| search     | text search via ripgrep        | no                |
-| writefile  | write or replace file content  | yes               |
-| applypatch | apply unified diff patch       | yes               |
-| runcommand | execute shell command          | yes               |
-| buildtool  | run configured build command   | yes               |
-| testrunner | run configured test command    | yes               |
-| listdir    | list directory entries         | no                |
+| id         | purpose                       | requires approval |
+| ---------- | ----------------------------- | ----------------- |
+| readfile   | read file content by path     | no                |
+| search     | text search via ripgrep       | no                |
+| writefile  | write or replace file content | yes               |
+| applypatch | apply unified diff patch      | yes               |
+| runcommand | execute shell command         | yes               |
+| buildtool  | run configured build command  | yes               |
+| testrunner | run configured test command   | yes               |
+| listdir    | list directory entries        | no                |
 
 ### Future Tool Addition
 
@@ -207,15 +207,15 @@ loop {
   prompt = build_prompt(context, question)
   model_output = call_ollama(prompt)
   parsed = parse_tool_call(model_output)
-  
+
   if parsed.is_final_answer {
     return parsed.content
   }
-  
+
   if parsed.is_tool_call {
     tool = registry.get(parsed.tool_id)
     approval = safety.check(tool, parsed.args)
-    
+
     if approval.required {
       decision = wait_for_user_approval(approval.view)
       if decision.rejected {
@@ -223,11 +223,11 @@ loop {
         continue
       }
     }
-    
+
     output = tool.execute(parsed.args)
     context.add("tool", tool.id, output)
   }
-  
+
   if iterations > max_iterations {
     return "max iterations reached"
   }
@@ -296,37 +296,37 @@ experiments/             prototyping and benchmarks
 
 ### Rust (backend)
 
-| crate            | purpose                       |
-|------------------|-------------------------------|
-| axum             | HTTP server and routing       |
-| tokio            | async runtime                 |
-| reqwest          | HTTP client for Ollama        |
-| serde/serde_json | serialization               |
-| tower            | middleware                    |
+| crate            | purpose                 |
+| ---------------- | ----------------------- |
+| axum             | HTTP server and routing |
+| tokio            | async runtime           |
+| reqwest          | HTTP client for Ollama  |
+| serde/serde_json | serialization           |
+| tower            | middleware              |
 
 ### TypeScript (extension)
 
-| package              | purpose                        |
-|----------------------|--------------------------------|
-| vscode               | VS Code extensibility API      |
-| @types/vscode        | TypeScript bindings            |
-| typescript-eslint     | linting                       |
-| esbuild              | bundling                       |
+| package           | purpose                   |
+| ----------------- | ------------------------- |
+| vscode            | VS Code extensibility API |
+| @types/vscode     | TypeScript bindings       |
+| typescript-eslint | linting                   |
+| esbuild           | bundling                  |
 
 ---
 
 ## Open Work
 
-| area                | status  |
-| --------------------- | -------------- |
-| extension scaffold    | done           |
-| backend scaffold      | done           |
-| ollama connection     | done           |
-| tool trait + registry | done           |
-| context builder       | done           |
-| tool-call loop        | done           |
-| safety filter         | done           |
-| approval modal        | done           |
-| diff approval         | done           |
+| area                  | status                                        |
+| --------------------- | --------------------------------------------- |
+| extension scaffold    | done                                          |
+| backend scaffold      | done                                          |
+| ollama connection     | done                                          |
+| tool trait + registry | done                                          |
+| context builder       | done                                          |
+| tool-call loop        | done                                          |
+| safety filter         | done                                          |
+| approval modal        | done                                          |
+| diff approval         | done                                          |
 | test loop             | tool foundation done; loop automation pending |
-| P0 compile fixes      | done           |
+| P0 compile fixes      | done                                          |

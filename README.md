@@ -139,28 +139,28 @@ All configuration is managed via **environment variables**. Create a `.env` file
 
 ### Backend Configuration (`backend/.env`)
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `BANDHU_SERVER_HOST` | `127.0.0.1` | Host address for the HTTP server |
-| `BANDHU_SERVER_PORT` | `3000` | Port for the HTTP server |
-| `BANDHU_OLLAMA_BASE_URL` | `http://localhost:11434` | Ollama API base URL |
-| `BANDHU_OLLAMA_MODEL` | `qwen2.5-coder:7b` | Model identifier to use |
-| `BANDHU_OLLAMA_STREAM` | `false` | Enable streaming responses (`true`/`false`) |
-| `BANDHU_MAX_ITERATIONS` | `10` | Max tool-call loop iterations per request |
-| `BANDHU_RG_MAX_COUNT` | `50` | Max ripgrep matches for context building |
-| `BANDHU_SCHEMA_VALIDATE` | `true` | Validate tool inputs against registered tool schemas |
-| `BANDHU_TOOL_INPUT_LIMIT` | `65536` | Max serialized JSON bytes allowed for a tool input |
-| `BANDHU_TOOL_TIMEOUT_SECS` | `120` | Max seconds for long-running command tools such as `buildtool` and `testrunner` |
-| `BANDHU_BUILD_COMMAND` | `cargo build` | Default command executed by the build tool |
-| `BANDHU_BUILD_WORKDIR` | `.` | Default working directory for the build tool |
-| `BANDHU_TEST_COMMAND` | `cargo test` | Default command executed by the test runner |
-| `BANDHU_TEST_WORKDIR` | `.` | Default working directory for the test runner |
-| `BANDHU_DEFAULT_APPROVAL` | `false` | Auto-approve all tool calls (`true`/`false`) |
-| `BANDHU_APPROVAL_TIMEOUT_SECS` | `300` | Seconds before approval prompt times out |
-| `BANDHU_FORBIDDEN_CMDS` | *(empty)* | Comma-separated forbidden command patterns |
-| `BANDHU_FORBIDDEN_PATHS` | *(empty)* | Comma-separated forbidden path patterns |
-| `BANDHU_CONTEXT_TOKEN_LIMIT` | `8192` | Approximate model context token budget |
-| `BANDHU_OLLAMA_TIMEOUT_SECS` | `120` | Max seconds to wait for a single Ollama request |
+| Variable                       | Default                  | Description                                                                     |
+| ------------------------------ | ------------------------ | ------------------------------------------------------------------------------- |
+| `BANDHU_SERVER_HOST`           | `127.0.0.1`              | Host address for the HTTP server                                                |
+| `BANDHU_SERVER_PORT`           | `3000`                   | Port for the HTTP server                                                        |
+| `BANDHU_OLLAMA_BASE_URL`       | `http://localhost:11434` | Ollama API base URL                                                             |
+| `BANDHU_OLLAMA_MODEL`          | `qwen2.5-coder:7b`       | Model identifier to use                                                         |
+| `BANDHU_OLLAMA_STREAM`         | `false`                  | Enable streaming responses (`true`/`false`)                                     |
+| `BANDHU_MAX_ITERATIONS`        | `10`                     | Max tool-call loop iterations per request                                       |
+| `BANDHU_RG_MAX_COUNT`          | `50`                     | Max ripgrep matches for context building                                        |
+| `BANDHU_SCHEMA_VALIDATE`       | `true`                   | Validate tool inputs against registered tool schemas                            |
+| `BANDHU_TOOL_INPUT_LIMIT`      | `65536`                  | Max serialized JSON bytes allowed for a tool input                              |
+| `BANDHU_TOOL_TIMEOUT_SECS`     | `120`                    | Max seconds for long-running command tools such as `buildtool` and `testrunner` |
+| `BANDHU_BUILD_COMMAND`         | `cargo build`            | Default command executed by the build tool                                      |
+| `BANDHU_BUILD_WORKDIR`         | `.`                      | Default working directory for the build tool                                    |
+| `BANDHU_TEST_COMMAND`          | `cargo test`             | Default command executed by the test runner                                     |
+| `BANDHU_TEST_WORKDIR`          | `.`                      | Default working directory for the test runner                                   |
+| `BANDHU_DEFAULT_APPROVAL`      | `false`                  | Auto-approve all tool calls (`true`/`false`)                                    |
+| `BANDHU_APPROVAL_TIMEOUT_SECS` | `300`                    | Seconds before approval prompt times out                                        |
+| `BANDHU_FORBIDDEN_CMDS`        | _(empty)_                | Comma-separated forbidden command patterns                                      |
+| `BANDHU_FORBIDDEN_PATHS`       | _(empty)_                | Comma-separated forbidden path patterns                                         |
+| `BANDHU_CONTEXT_TOKEN_LIMIT`   | `8192`                   | Approximate model context token budget                                          |
+| `BANDHU_OLLAMA_TIMEOUT_SECS`   | `120`                    | Max seconds to wait for a single Ollama request                                 |
 
 **Example `.env` file:**
 
@@ -204,48 +204,48 @@ cargo run --release  # automatically loads .env if present
 
 Set these variables in your shell before launching VS Code, or load `bandhu/.env` before starting the extension development host.
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `BANDHU_BACKEND_URL` | `http://127.0.0.1:3000` | Backend server URL |
-| `BANDHU_CHAT_PLACEHOLDER` | `Ask Bandhu...` | Placeholder shown in the webview chat input |
-| `BANDHU_CHAT_TIMEOUT_MS` | `120000` | Milliseconds before `/chat` requests are aborted |
-| `BANDHU_CHAT_RETRIES` | `2` | Number of retry attempts for `/chat` failures after the first attempt |
-| `BANDHU_CHAT_RETRY_DELAY_MS` | `500` | Milliseconds to wait between `/chat` retry attempts |
-| `BANDHU_CHAT_STREAMING` | `true` | Use the backend `/chat/stream` SSE endpoint for incremental chat messages |
-| `BANDHU_COMMAND_TIMEOUT_MS` | `30000` | Milliseconds before `/approve` requests are aborted |
-| `BANDHU_COMMAND_RETRIES` | `1` | Number of retry attempts for `/approve` failures after the first attempt |
-| `BANDHU_COMMAND_RETRY_DELAY_MS` | `500` | Milliseconds to wait between `/approve` retry attempts |
-| `BANDHU_STATUS_TEXT` | `$(check) Bandhu` | Text shown in the VS Code status bar when idle |
-| `BANDHU_STATUS_BUSY_TEXT` | `$(loading~spin) Bandhu` | Text shown while a chat request is running |
-| `BANDHU_STATUS_ERROR_TEXT` | `$(error) Bandhu` | Text shown after a chat request fails |
-| `BANDHU_STATUS_TOOLTIP` | `Ready` | Tooltip shown when idle |
-| `BANDHU_STATUS_BUSY_TOOLTIP` | `Working` | Tooltip shown while a chat request is running |
-| `BANDHU_STATUS_ERROR_TOOLTIP` | `Error` | Tooltip shown after a chat request fails |
-| `BANDHU_DEFAULT_APPROVAL` | `false` | Auto-approve all tool calls |
-| `BANDHU_APPROVAL_TIMEOUT_SECS` | `300` | Approval prompt timeout in seconds |
-| `BANDHU_FORBIDDEN_CMDS` | *(empty)* | Comma-separated forbidden command patterns |
-| `BANDHU_FORBIDDEN_PATHS` | *(empty)* | Comma-separated forbidden path patterns |
+| Variable                        | Default                  | Description                                                               |
+| ------------------------------- | ------------------------ | ------------------------------------------------------------------------- |
+| `BANDHU_BACKEND_URL`            | `http://127.0.0.1:3000`  | Backend server URL                                                        |
+| `BANDHU_CHAT_PLACEHOLDER`       | `Ask Bandhu...`          | Placeholder shown in the webview chat input                               |
+| `BANDHU_CHAT_TIMEOUT_MS`        | `120000`                 | Milliseconds before `/chat` requests are aborted                          |
+| `BANDHU_CHAT_RETRIES`           | `2`                      | Number of retry attempts for `/chat` failures after the first attempt     |
+| `BANDHU_CHAT_RETRY_DELAY_MS`    | `500`                    | Milliseconds to wait between `/chat` retry attempts                       |
+| `BANDHU_CHAT_STREAMING`         | `true`                   | Use the backend `/chat/stream` SSE endpoint for incremental chat messages |
+| `BANDHU_COMMAND_TIMEOUT_MS`     | `30000`                  | Milliseconds before `/approve` requests are aborted                       |
+| `BANDHU_COMMAND_RETRIES`        | `1`                      | Number of retry attempts for `/approve` failures after the first attempt  |
+| `BANDHU_COMMAND_RETRY_DELAY_MS` | `500`                    | Milliseconds to wait between `/approve` retry attempts                    |
+| `BANDHU_STATUS_TEXT`            | `$(check) Bandhu`        | Text shown in the VS Code status bar when idle                            |
+| `BANDHU_STATUS_BUSY_TEXT`       | `$(loading~spin) Bandhu` | Text shown while a chat request is running                                |
+| `BANDHU_STATUS_ERROR_TEXT`      | `$(error) Bandhu`        | Text shown after a chat request fails                                     |
+| `BANDHU_STATUS_TOOLTIP`         | `Ready`                  | Tooltip shown when idle                                                   |
+| `BANDHU_STATUS_BUSY_TOOLTIP`    | `Working`                | Tooltip shown while a chat request is running                             |
+| `BANDHU_STATUS_ERROR_TOOLTIP`   | `Error`                  | Tooltip shown after a chat request fails                                  |
+| `BANDHU_DEFAULT_APPROVAL`       | `false`                  | Auto-approve all tool calls                                               |
+| `BANDHU_APPROVAL_TIMEOUT_SECS`  | `300`                    | Approval prompt timeout in seconds                                        |
+| `BANDHU_FORBIDDEN_CMDS`         | _(empty)_                | Comma-separated forbidden command patterns                                |
+| `BANDHU_FORBIDDEN_PATHS`        | _(empty)_                | Comma-separated forbidden path patterns                                   |
 
 ## Usage
 
 1. Open a project folder in VS Code.
 2. Activate Bandhu via the status bar item or command palette (`Ctrl+Shift+P` → "Bandhu: Open Chat").
-3. Type your coding task in the chat panel (e.g., *"Add error handling to the login function"*).
+3. Type your coding task in the chat panel (e.g., _"Add error handling to the login function"_).
 4. Review tool actions in the approval modal.
 5. Accept or reject each proposed change.
 6. View the final result in the chat panel.
 
 ## Available Tools
 
-| Tool ID | Purpose | Requires Approval |
-|---------|---------|-------------------|
-| `readfile` | Read file content by path | No |
-| `search` | Text search via ripgrep | No |
-| `writefile` | Write or replace file content | Yes |
-| `runcommand` | Execute shell command | Yes |
-| `buildtool` | Run configured build command | Yes |
-| `testrunner` | Run configured test command and summarize failures | Yes |
-| `listdir` | List directory entries | No |
+| Tool ID      | Purpose                                            | Requires Approval |
+| ------------ | -------------------------------------------------- | ----------------- |
+| `readfile`   | Read file content by path                          | No                |
+| `search`     | Text search via ripgrep                            | No                |
+| `writefile`  | Write or replace file content                      | Yes               |
+| `runcommand` | Execute shell command                              | Yes               |
+| `buildtool`  | Run configured build command                       | Yes               |
+| `testrunner` | Run configured test command and summarize failures | Yes               |
+| `listdir`    | List directory entries                             | No                |
 
 ## Project Structure
 
@@ -309,12 +309,12 @@ npm run test         # run tests
 
 ## Troubleshooting
 
-| Issue | Solution |
-|-------|----------|
-| Backend won't start | Check if port 3000 is already in use. Set `BANDHU_SERVER_PORT` to a different value. |
-| Ollama connection refused | Ensure Ollama is running: `ollama serve`. Verify with `curl http://localhost:11434/api/tags`. |
-| Extension not activating | Open the Extension Development Host window with `F5`. Check the Debug Console for errors. |
-| Tool approval modal not showing | Ensure the backend `/approve` endpoint is reachable from the extension. |
+| Issue                           | Solution                                                                                      |
+| ------------------------------- | --------------------------------------------------------------------------------------------- |
+| Backend won't start             | Check if port 3000 is already in use. Set `BANDHU_SERVER_PORT` to a different value.          |
+| Ollama connection refused       | Ensure Ollama is running: `ollama serve`. Verify with `curl http://localhost:11434/api/tags`. |
+| Extension not activating        | Open the Extension Development Host window with `F5`. Check the Debug Console for errors.     |
+| Tool approval modal not showing | Ensure the backend `/approve` endpoint is reachable from the extension.                       |
 
 ## License
 

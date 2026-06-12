@@ -10,7 +10,7 @@ Input:
 
 ```json
 {
-  "path": "backend/src/main.rs"
+    "path": "backend/src/main.rs"
 }
 ```
 
@@ -18,8 +18,8 @@ Output:
 
 ```json
 {
-  "path": "backend/src/main.rs",
-  "content": "..."
+    "path": "backend/src/main.rs",
+    "content": "..."
 }
 ```
 
@@ -33,8 +33,8 @@ Input:
 
 ```json
 {
-  "pattern": "Config",
-  "path": "backend/src"
+    "pattern": "Config",
+    "path": "backend/src"
 }
 ```
 
@@ -42,15 +42,15 @@ Output:
 
 ```json
 {
-  "pattern": "Config",
-  "path": "/workspace/backend/src",
-  "matches": [
-    {
-      "path": "/workspace/backend/src/config.rs",
-      "line": 4,
-      "text": "pub struct Config {"
-    }
-  ]
+    "pattern": "Config",
+    "path": "/workspace/backend/src",
+    "matches": [
+        {
+            "path": "/workspace/backend/src/config.rs",
+            "line": 4,
+            "text": "pub struct Config {"
+        }
+    ]
 }
 ```
 
@@ -66,7 +66,7 @@ Input:
 
 ```json
 {
-  "path": "backend/src"
+    "path": "backend/src"
 }
 ```
 
@@ -74,13 +74,13 @@ Output:
 
 ```json
 {
-  "path": "/workspace/backend/src",
-  "entries": [
-    {
-      "name": "main.rs",
-      "kind": "file"
-    }
-  ]
+    "path": "/workspace/backend/src",
+    "entries": [
+        {
+            "name": "main.rs",
+            "kind": "file"
+        }
+    ]
 }
 ```
 
@@ -94,8 +94,8 @@ Input:
 
 ```json
 {
-  "path": "docs/example.md",
-  "content": "# Example\n"
+    "path": "docs/example.md",
+    "content": "# Example\n"
 }
 ```
 
@@ -103,8 +103,8 @@ Output:
 
 ```json
 {
-  "path": "docs/example.md",
-  "status": "written"
+    "path": "docs/example.md",
+    "status": "written"
 }
 ```
 
@@ -120,8 +120,8 @@ Input:
 
 ```json
 {
-  "path": "docs/example.md",
-  "patch": "--- a/docs/example.md\n+++ b/docs/example.md\n-old\n+new\n"
+    "path": "docs/example.md",
+    "patch": "--- a/docs/example.md\n+++ b/docs/example.md\n-old\n+new\n"
 }
 ```
 
@@ -129,8 +129,8 @@ Output:
 
 ```json
 {
-  "path": "docs/example.md",
-  "status": "applied"
+    "path": "docs/example.md",
+    "status": "applied"
 }
 ```
 
@@ -144,7 +144,7 @@ Input:
 
 ```json
 {
-  "command": "cargo test"
+    "command": "cargo test"
 }
 ```
 
@@ -152,9 +152,9 @@ Output:
 
 ```json
 {
-  "stdout": "...",
-  "stderr": "",
-  "status": 0
+    "stdout": "...",
+    "stderr": "",
+    "status": 0
 }
 ```
 
@@ -170,8 +170,8 @@ Input:
 
 ```json
 {
-  "command": "cargo build",
-  "directory": "backend"
+    "command": "cargo build",
+    "directory": "backend"
 }
 ```
 
@@ -179,11 +179,11 @@ Output:
 
 ```json
 {
-  "command": "cargo build",
-  "directory": "backend",
-  "stdout": "...",
-  "stderr": "",
-  "status": 0
+    "command": "cargo build",
+    "directory": "backend",
+    "stdout": "...",
+    "stderr": "",
+    "status": 0
 }
 ```
 
@@ -199,8 +199,8 @@ Input:
 
 ```json
 {
-  "command": "cargo test",
-  "directory": "backend"
+    "command": "cargo test",
+    "directory": "backend"
 }
 ```
 
@@ -208,13 +208,13 @@ Output:
 
 ```json
 {
-  "command": "cargo test",
-  "directory": "backend",
-  "stdout": "...",
-  "stderr": "",
-  "status": 0,
-  "summary": "passed",
-  "failures": []
+    "command": "cargo test",
+    "directory": "backend",
+    "stdout": "...",
+    "stderr": "",
+    "status": 0,
+    "summary": "passed",
+    "failures": []
 }
 ```
 

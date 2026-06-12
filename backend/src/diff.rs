@@ -131,10 +131,10 @@ pub fn hunks(patch: &str) -> Vec<Hunk> {
         }
 
         if let Some(ref mut hunk) = current_hunk {
-            if trimmed.starts_with('-') {
-                hunk.lines.push(HunkLine::Remove(trimmed[1..].to_string()));
-            } else if trimmed.starts_with('+') {
-                hunk.lines.push(HunkLine::Add(trimmed[1..].to_string()));
+            if let Some(stripped) = trimmed.strip_prefix('-') {
+                hunk.lines.push(HunkLine::Remove(stripped.to_string()));
+            } else if let Some(stripped) = trimmed.strip_prefix('+') {
+                hunk.lines.push(HunkLine::Add(stripped.to_string()));
             } else if !trimmed.is_empty() {
                 hunk.lines.push(HunkLine::Context(trimmed.to_string()));
             }
