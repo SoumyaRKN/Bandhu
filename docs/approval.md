@@ -50,6 +50,7 @@ Example diff output:
 The gate checks `BANDHU_FORBIDDEN_CMDS`, `BANDHU_INSTALL_CMDS`, and `BANDHU_FORBIDDEN_PATHS` from `backend/.env`.
 
 - `runcommand` input is checked as a lowercase command string.
+- The default forbidden command patterns block `rm -rf`, `sudo`, and shell ampersand operators before approval.
 - Package install commands are matched against `BANDHU_INSTALL_CMDS`. Matching approvals include `kind: "install"` and the matched `pattern`.
 - `writefile`, `readfile`, and `runcommand` path inputs are checked as path substrings when a `path` field is present.
 - Matching is case-insensitive for commands and paths.
@@ -61,6 +62,7 @@ The gate checks `BANDHU_FORBIDDEN_CMDS`, `BANDHU_INSTALL_CMDS`, and `BANDHU_FORB
 | `BANDHU_DEFAULT_APPROVAL` | `false` | When `true`, bypasses the user prompt. |
 | `BANDHU_APPROVAL_TIMEOUT_SECS` | `300` | Timeout for pending approval. |
 | `BANDHU_APPROVAL_LOG` | _(empty)_ | Optional JSONL audit log path for approved, rejected, and timed out decisions. |
+| `BANDHU_FORBIDDEN_CMDS` | `rm -rf,sudo,&` | Command patterns blocked before approval and execution. |
 | `BANDHU_INSTALL_CMDS` | `apt install,apt-get install,npm install,yarn add,pnpm add,cargo install,pip install,pip3 install,uv pip install,poetry add,gem install,go install,brew install` | Package install command patterns that tag `runcommand` approvals as install approvals. |
 | `BANDHU_SCHEMA_VALIDATE` | `true` | Validates tool inputs before approval and execution. |
 | `BANDHU_TOOL_INPUT_LIMIT` | `65536` | Max serialized JSON bytes allowed for a tool input. |

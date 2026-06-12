@@ -52,7 +52,7 @@ The extension uses this endpoint for `/chat` and `/approve`. `/chat` returns a c
 | `BANDHU_DEFAULT_APPROVAL` | `false` | Auto-approve all tools when `true`. Disable for production. |
 | `BANDHU_APPROVAL_TIMEOUT_SECS` | `300` | Seconds before pending approval is aborted. |
 | `BANDHU_APPROVAL_LOG` | _(empty)_ | Optional JSONL audit log path for approval decisions. Example: `./approval.jsonl` |
-| `BANDHU_FORBIDDEN_CMDS` | _(empty)_ | Comma-separated lowercase command patterns blocked by the safety filter. Example: `rm -rf,sudo,del /f` |
+| `BANDHU_FORBIDDEN_CMDS` | `rm -rf,sudo,&` | Comma-separated lowercase command patterns blocked by the safety filter. Set to an empty value only for controlled debugging. Example: `rm -rf,sudo,&,del /f` |
 | `BANDHU_INSTALL_CMDS` | `apt install,apt-get install,npm install,yarn add,pnpm add,cargo install,pip install,pip3 install,uv pip install,poetry add,gem install,go install,brew install` | Comma-separated lowercase package install command patterns. Matching `runcommand` approvals are tagged with `kind: "install"` and the matched `pattern`. |
 | `BANDHU_FORBIDDEN_PATHS` | _(empty)_ | Comma-separated path substrings blocked by the safety filter. Example: `/etc/passwd,.env` |
 
@@ -132,7 +132,7 @@ BANDHU_TOOL_INPUT_LIMIT=65536
 BANDHU_DEFAULT_APPROVAL=false
 BANDHU_APPROVAL_TIMEOUT_SECS=300
 BANDHU_APPROVAL_LOG=./approval.jsonl
-BANDHU_FORBIDDEN_CMDS=rm -rf,sudo,del /f
+BANDHU_FORBIDDEN_CMDS=rm -rf,sudo,&,del /f
 BANDHU_INSTALL_CMDS=apt install,apt-get install,npm install,yarn add,pnpm add,cargo install,pip install,pip3 install,uv pip install,poetry add,gem install,go install,brew install
 BANDHU_FORBIDDEN_PATHS=/etc/passwd,.env
 BANDHU_PROMPT_TEMPLATE=Available tools:\n{}\n\nContext:\n{}\n\nTask: {}

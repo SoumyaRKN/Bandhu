@@ -140,14 +140,14 @@ Build a local-first VS Code coding AI agent (Bandhu) that runs mostly free, work
 
 | # | Task | Description | Status |
 |---|------|-------------|--------|
-| 66 | Define Forbidden Commands | Maintain list of forbidden commands: `rm -rf /`, `sudo`, background execution | `In Progress` |
+| 66 | Define Forbidden Commands | Maintain list of forbidden commands: `rm -rf /`, `sudo`, background execution | `Completed` |
 | 67 | Implement Command Filter | Add filter to block execution of dangerous commands in `gate.rs` | `Completed` |
 | 68 | Add File Edit Confirmation | Require user approval before WriteFile tool is executed | `Completed` |
 | 69 | Add Command Confirmation | Require user approval before RunCommand tool is executed | `Completed` |
 | 70 | Add Package Install Confirmation | Require confirmation before any package installation commands | `Completed` |
 | 71 | Implement Confirmation UI | Create VS Code webview or quick pick for showing tool actions and requesting confirmation | `Completed` |
 | 72 | Add Approval Logging | Log all approved and rejected tool executions for audit trail | `Completed` |
-| 73 | Test Safety Mechanisms | Manually verify dangerous commands are blocked and approvals work end-to-end | `Pending` |
+| 73 | Test Safety Mechanisms | Manually verify dangerous commands are blocked and approvals work end-to-end | `Completed` |
 
 ---
 

@@ -32,7 +32,7 @@ impl Config {
     pub fn from_env() -> Self {
         let _ = dotenvy::dotenv();
         let forbidden_command_patterns = env::var("BANDHU_FORBIDDEN_CMDS")
-            .unwrap_or_default()
+            .unwrap_or_else(|_| "rm -rf,sudo, &".to_string())
             .split(',')
             .filter(|s| !s.trim().is_empty())
             .map(|s| s.trim().to_lowercase())

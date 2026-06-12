@@ -95,6 +95,43 @@ mod tests {
 
         assert_eq!(found, None);
     }
+
+    #[test]
+    fn blocksdefault() {
+        let gate = Gate::new(Config::from_env());
+
+        let remove = gate.check(&json!({"command": "rm -rf /tmp/sample"}), "runcommand");
+        let sudo = gate.check(&json!({"command": "sudo apt update"}), "runcommand");
+        let background = gate.check(&json!({"command": "sleep 1 &"}), "runcommand");
+
+        assert!(remove.is_err());
+        assert!(sudo.is_err());
+        assert!(background.is_err());
+    }
+
+    #[test]
+    fn allowssafe() {
+        let gate = Gate::new(Config::from_env());
+
+        let result = gate.check(&json!({"command": "cargo test"}), "runcommand");
+
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn allowscustom() {
+        let config = Config {
+            forbidden_command_patterns: vec!["halt".to_string()],
+            ..Config::from_env()
+        };
+        let gate = Gate::new(config);
+
+        let remove = gate.check(&json!({"command": "rm -rf /tmp/sample"}), "runcommand");
+        let halt = gate.check(&json!({"command": "halt now"}), "runcommand");
+
+        assert!(remove.is_ok());
+        assert!(halt.is_err());
+    }
 }
 
 pub use serde::{Deserialize, Serialize};
