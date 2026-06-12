@@ -182,7 +182,7 @@ Context flows through stages: `search` → `select` → `summarize` → `pack`. 
 
 ### pattern: Circuit Breaker (safety filter)
 
-Before any `runcommand` or `writefile` execution, the `safety` filter checks against forbidden patterns (`rm -rf`, `sudo`, background operators). Blocked commands short-circuit the loop with a rejection notification.
+Before any `runcommand` or `writefile` execution, the `safety` filter checks against forbidden patterns (`rm -rf`, `sudo`, background operators). Package install commands are matched against configurable install patterns and tagged for explicit install approval. Blocked commands short-circuit the loop with a rejection notification.
 
 ### pattern: Approval Gate (user confirmation)
 

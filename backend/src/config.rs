@@ -14,6 +14,7 @@ pub struct Config {
     #[allow(dead_code)]
     pub approval_timeout_secs: u64,
     pub forbidden_command_patterns: Vec<String>,
+    pub installpatterns: Vec<String>,
     pub forbidden_path_patterns: Vec<String>,
     #[allow(dead_code)]
     pub schema_validate: bool,
@@ -32,6 +33,15 @@ impl Config {
         let _ = dotenvy::dotenv();
         let forbidden_command_patterns = env::var("BANDHU_FORBIDDEN_CMDS")
             .unwrap_or_default()
+            .split(',')
+            .filter(|s| !s.trim().is_empty())
+            .map(|s| s.trim().to_lowercase())
+            .collect::<Vec<_>>();
+        let installpatterns = env::var("BANDHU_INSTALL_CMDS")
+            .unwrap_or_else(|_| {
+                "apt install,apt-get install,npm install,yarn add,pnpm add,cargo install,pip install,pip3 install,uv pip install,poetry add,gem install,go install,brew install"
+                    .to_string()
+            })
             .split(',')
             .filter(|s| !s.trim().is_empty())
             .map(|s| s.trim().to_lowercase())
@@ -67,6 +77,7 @@ impl Config {
                 .and_then(|v| v.parse().ok())
                 .unwrap_or(300),
             forbidden_command_patterns,
+            installpatterns,
             forbidden_path_patterns: env::var("BANDHU_FORBIDDEN_PATHS")
                 .unwrap_or_default()
                 .split(',')

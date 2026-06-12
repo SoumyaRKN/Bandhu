@@ -50,8 +50,50 @@ impl Gate {
         Ok(())
     }
 
+    pub fn install(&self, tool_input: &Value, tool_id: &str) -> Option<String> {
+        if tool_id != "runcommand" {
+            return None;
+        }
+
+        let command = tool_input.get("command").and_then(|v| v.as_str())?;
+        let lower = command.to_lowercase();
+        self.config
+            .installpatterns
+            .iter()
+            .find(|pattern| lower.contains(pattern.as_str()) || lower == **pattern)
+            .cloned()
+    }
+
     pub fn requires_approval(&self, tool_id: &str) -> bool {
         matches!(tool_id, "writefile" | "runcommand")
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn detectsinstall() {
+        let mut config = Config::from_env();
+        config.installpatterns = vec!["npm install".to_string()];
+        let gate = Gate::new(config);
+
+        let found = gate.install(&json!({"command": "npm install"}), "runcommand");
+
+        assert_eq!(found, Some("npm install".to_string()));
+    }
+
+    #[test]
+    fn ignoresnoninstall() {
+        let mut config = Config::from_env();
+        config.installpatterns = vec!["npm install".to_string()];
+        let gate = Gate::new(config);
+
+        let found = gate.install(&json!({"command": "npm test"}), "runcommand");
+
+        assert_eq!(found, None);
     }
 }
 

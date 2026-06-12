@@ -144,7 +144,7 @@ Build a local-first VS Code coding AI agent (Bandhu) that runs mostly free, work
 | 67 | Implement Command Filter | Add filter to block execution of dangerous commands in `gate.rs` | `Completed` |
 | 68 | Add File Edit Confirmation | Require user approval before WriteFile tool is executed | `Completed` |
 | 69 | Add Command Confirmation | Require user approval before RunCommand tool is executed | `Completed` |
-| 70 | Add Package Install Confirmation | Require confirmation before any package installation commands | `Pending` |
+| 70 | Add Package Install Confirmation | Require confirmation before any package installation commands | `Completed` |
 | 71 | Implement Confirmation UI | Create VS Code webview or quick pick for showing tool actions and requesting confirmation | `Completed` |
 | 72 | Add Approval Logging | Log all approved and rejected tool executions for audit trail | `Completed` |
 | 73 | Test Safety Mechanisms | Manually verify dangerous commands are blocked and approvals work end-to-end | `Pending` |
@@ -333,4 +333,4 @@ These are high-priority items discovered during the audit that block further dev
 | P1 | No JSON Schema validation on tool inputs | `backend/src/tool.rs` | Add `validate(input) -> Result<()>` to `Tool` trait | `Completed` |
 | P2 | Extension routing types mismatch — `types.ts` `id` field vs backend `request_id` | `bandhu/src/types.ts`, `backend/src/queue.rs` | Align field names | `Pending` |
 | P2 | No streaming support for `/chat` | `backend/src/main.rs`, `bandhu/src/api.ts` | Implement SSE streaming | `Pending` |
-| P2 | `gate.rs` does package install detection only via broad command filter | `backend/src/gate.rs` | Add specific package manager pattern matching | `Pending` |
+| P2 | `gate.rs` does package install detection only via broad command filter | `backend/src/gate.rs` | Add specific package manager pattern matching | `Completed` |

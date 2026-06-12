@@ -160,4 +160,4 @@ Output:
 
 Approval: yes.
 
-Configuration: `BANDHU_FORBIDDEN_CMDS` blocks dangerous command substrings before approval and execution.
+Configuration: `BANDHU_FORBIDDEN_CMDS` blocks dangerous command substrings before approval and execution. `BANDHU_INSTALL_CMDS` tags package install approvals with `kind: "install"` and the matched `pattern`.

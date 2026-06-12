@@ -123,13 +123,16 @@ impl Loop {
                                 } else {
                                     None
                                 };
+                                let install = self.gate.install(&tool_input, tool_id);
 
                                 let approval_msg = json!({
                                     "type": "tool_approval",
                                     "id": req_id,
                                     "tool": tool_id,
                                     "input": tool_input.clone(),
-                                    "diff": diff
+                                    "diff": diff,
+                                    "kind": if install.is_some() { "install" } else { "standard" },
+                                    "pattern": install
                                 });
                                 messages.push(approval_msg.clone());
                                 log::info!(
