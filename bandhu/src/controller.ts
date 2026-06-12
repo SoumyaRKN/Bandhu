@@ -1,12 +1,12 @@
 import * as vscode from 'vscode';
-import { StatusBar } from './status';
+import { Statusbar } from './status';
 import { ChatPanel } from './chatui';
-import { sendChat, approve, reject } from './api';
+import { sendchat, approve, reject } from './api';
 import { ChatMessage, ApprovalRequestMsg, WebviewMsg } from './types';
 import { fromEnv } from './config';
 
 export class Controller implements vscode.Disposable {
-    private status: StatusBar = new StatusBar();
+    private status: Statusbar = new Statusbar();
     private config = fromEnv();
     private chat: ChatPanel = new ChatPanel(this.config.placeholder);
 
@@ -29,13 +29,13 @@ export class Controller implements vscode.Disposable {
 
     private async handleWebviewMsg(msg: WebviewMsg) {
         if (msg.type === 'send' && msg.text) {
-            this.status.setBusy();
+            this.status.setbusy();
             try {
-                const res = await sendChat(msg.text);
-                this.status.setIdle();
+                const res = await sendchat(msg.text);
+                this.status.setidle();
                 this.show(res);
             } catch (e) {
-                this.status.setError();
+                this.status.seterror();
                 this.chat.append({ type: 'error', error: String(e) } as ChatMessage);
             }
         }

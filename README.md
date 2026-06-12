@@ -192,10 +192,24 @@ cargo run --release  # automatically loads .env if present
 
 ### Extension Configuration (`bandhu/.env`)
 
+Set these variables in your shell before launching VS Code, or load `bandhu/.env` before starting the extension development host.
+
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `BANDHU_BACKEND_URL` | `http://127.0.0.1:3000` | Backend server URL |
 | `BANDHU_CHAT_PLACEHOLDER` | `Ask Bandhu...` | Placeholder shown in the webview chat input |
+| `BANDHU_CHAT_TIMEOUT_MS` | `120000` | Milliseconds before `/chat` requests are aborted |
+| `BANDHU_CHAT_RETRIES` | `2` | Number of retry attempts for `/chat` failures after the first attempt |
+| `BANDHU_CHAT_RETRY_DELAY_MS` | `500` | Milliseconds to wait between `/chat` retry attempts |
+| `BANDHU_COMMAND_TIMEOUT_MS` | `30000` | Milliseconds before `/approve` requests are aborted |
+| `BANDHU_COMMAND_RETRIES` | `1` | Number of retry attempts for `/approve` failures after the first attempt |
+| `BANDHU_COMMAND_RETRY_DELAY_MS` | `500` | Milliseconds to wait between `/approve` retry attempts |
+| `BANDHU_STATUS_TEXT` | `$(check) Bandhu` | Text shown in the VS Code status bar when idle |
+| `BANDHU_STATUS_BUSY_TEXT` | `$(loading~spin) Bandhu` | Text shown while a chat request is running |
+| `BANDHU_STATUS_ERROR_TEXT` | `$(error) Bandhu` | Text shown after a chat request fails |
+| `BANDHU_STATUS_TOOLTIP` | `Ready` | Tooltip shown when idle |
+| `BANDHU_STATUS_BUSY_TOOLTIP` | `Working` | Tooltip shown while a chat request is running |
+| `BANDHU_STATUS_ERROR_TOOLTIP` | `Error` | Tooltip shown after a chat request fails |
 | `BANDHU_DEFAULT_APPROVAL` | `false` | Auto-approve all tool calls |
 | `BANDHU_APPROVAL_TIMEOUT_SECS` | `300` | Approval prompt timeout in seconds |
 | `BANDHU_FORBIDDEN_CMDS` | *(empty)* | Comma-separated forbidden command patterns |

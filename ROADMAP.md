@@ -71,7 +71,7 @@ Build a local-first VS Code coding AI agent (Bandhu) that runs mostly free, work
 | 29 | Configure Extension Manifest | Update `extension.ts` or main entry point with basic activation logic | `Completed` |
 | 30 | Add Launch Configuration | Ensure `.vscode/launch.json` is properly configured for debugging | `Completed` |
 | 31 | Test Extension Launch | Press F5 to launch new Extension Development Host window | `Pending` |
-| 32 | Add Status Bar Indicator | Add status bar item showing "Bandhu" when extension is active | `In Progress` |
+| 32 | Add Status Bar Indicator | Add status bar item showing "Bandhu" when extension is active | `Completed` |
 | 33 | Verify Extension Loads | Confirm extension activates in new VS Code window without errors | `Pending` |
 
 ---
@@ -192,6 +192,7 @@ Build a local-first VS Code coding AI agent (Bandhu) that runs mostly free, work
 | 94 | Stream Responses Backend | Add SSE streaming support to `/chat` endpoint | `Pending` |
 | 95 | Stream Responses Extension | Update extension to consume SSE stream and render tokens incrementally | `Pending` |
 | 96 | Add Request Cancellation | Support cancelling in-flight requests when user sends new input | `Pending` |
+| 143 | Add Fetch Timeout And Retry | Configure extension `/chat` and `/approve` calls with environment-controlled timeout, retry count, and retry delay | `Completed` |
 
 ---
 

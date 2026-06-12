@@ -40,29 +40,33 @@ var vscode3 = __toESM(require("vscode"));
 
 // src/status.ts
 var vscode = __toESM(require("vscode"));
-var StatusBar = class {
+var Statusbar = class {
   item;
   constructor() {
     this.item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
     this.item.command = "bandhu.open";
+    this.setidle();
     this.item.show();
   }
-  setBusy() {
-    this.item.text = "$(loading~spin) Bandhu";
-    this.item.tooltip = "Working";
+  setbusy() {
+    this.item.text = env("BANDHU_STATUS_BUSY_TEXT", "$(loading~spin) Bandhu");
+    this.item.tooltip = env("BANDHU_STATUS_BUSY_TOOLTIP", "Working");
   }
-  setIdle() {
-    this.item.text = "$(check) Bandhu";
-    this.item.tooltip = "Ready";
+  setidle() {
+    this.item.text = env("BANDHU_STATUS_TEXT", "$(check) Bandhu");
+    this.item.tooltip = env("BANDHU_STATUS_TOOLTIP", "Ready");
   }
-  setError() {
-    this.item.text = "$(error) Bandhu";
-    this.item.tooltip = "Error";
+  seterror() {
+    this.item.text = env("BANDHU_STATUS_ERROR_TEXT", "$(error) Bandhu");
+    this.item.tooltip = env("BANDHU_STATUS_ERROR_TOOLTIP", "Error");
   }
   dispose() {
     this.item.dispose();
   }
 };
+function env(name, fallback) {
+  return process.env[name] || fallback;
+}
 
 // src/chatui.ts
 var vscode2 = __toESM(require("vscode"));
@@ -241,6 +245,87 @@ var ChatPanel = class {
   }
 };
 
+// src/api.ts
+var chatms = intenv("BANDHU_CHAT_TIMEOUT_MS", 12e4);
+var chatretries = intenv("BANDHU_CHAT_RETRIES", 2);
+var chatdelay = intenv("BANDHU_CHAT_RETRY_DELAY_MS", 500);
+var commandms = intenv("BANDHU_COMMAND_TIMEOUT_MS", 3e4);
+var commandretries = intenv("BANDHU_COMMAND_RETRIES", 1);
+var commanddelay = intenv("BANDHU_COMMAND_RETRY_DELAY_MS", 500);
+var backend = process.env.BANDHU_BACKEND_URL || "http://127.0.0.1:3000";
+async function sendchat(prompt) {
+  const res = await postjson(
+    `${backend}/chat`,
+    { prompt },
+    chatms,
+    chatretries,
+    chatdelay
+  );
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(`chat failed: ${res.status}`);
+  }
+  return data;
+}
+async function approve(req) {
+  const res = await postjson(
+    `${backend}/approve`,
+    { request_id: req.id, approved: true },
+    commandms,
+    commandretries,
+    commanddelay
+  );
+  return res.ok;
+}
+async function reject(req) {
+  const res = await postjson(
+    `${backend}/approve`,
+    { request_id: req.id, approved: false },
+    commandms,
+    commandretries,
+    commanddelay
+  );
+  return res.ok;
+}
+async function postjson(url, body, timeout, retries, delay) {
+  let attempt = 0;
+  let last;
+  while (attempt <= retries) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeout);
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+        signal: controller.signal
+      });
+      clearTimeout(timer);
+      if (res.ok || attempt >= retries) {
+        return res;
+      }
+    } catch (err) {
+      last = err;
+      clearTimeout(timer);
+    } finally {
+      clearTimeout(timer);
+    }
+    attempt += 1;
+    if (attempt <= retries) {
+      await wait(delay);
+    }
+  }
+  throw last instanceof Error ? last : new Error("request failed");
+}
+function intenv(name, fallback) {
+  const raw = process.env[name];
+  const value = Number.parseInt(raw || "", 10);
+  return Number.isFinite(value) ? value : fallback;
+}
+async function wait(ms) {
+  await new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 // src/config.ts
 function fromEnv() {
   return {
@@ -253,37 +338,6 @@ function fromEnv() {
   };
 }
 
-// src/api.ts
-var cfg = fromEnv();
-async function sendChat(prompt) {
-  const res = await fetch(`${cfg.backendUrl}/chat`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ prompt })
-  });
-  const data = await res.json();
-  if (!res.ok) {
-    throw new Error(`chat failed: ${res.status}`);
-  }
-  return data;
-}
-async function approve(req) {
-  const res = await fetch(`${cfg.backendUrl}/approve`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ request_id: req.id, approved: true })
-  });
-  return res.ok;
-}
-async function reject(req) {
-  const res = await fetch(`${cfg.backendUrl}/approve`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ request_id: req.id, approved: false })
-  });
-  return res.ok;
-}
-
 // src/controller.ts
 var Controller = class {
   constructor(ctx) {
@@ -291,7 +345,7 @@ var Controller = class {
     ctx.subscriptions.push(this);
   }
   ctx;
-  status = new StatusBar();
+  status = new Statusbar();
   config = fromEnv();
   chat = new ChatPanel(this.config.placeholder);
   async activate() {
@@ -305,13 +359,13 @@ var Controller = class {
   }
   async handleWebviewMsg(msg) {
     if (msg.type === "send" && msg.text) {
-      this.status.setBusy();
+      this.status.setbusy();
       try {
-        const res = await sendChat(msg.text);
-        this.status.setIdle();
+        const res = await sendchat(msg.text);
+        this.status.setidle();
         this.show(res);
       } catch (e) {
-        this.status.setError();
+        this.status.seterror();
         this.chat.append({ type: "error", error: String(e) });
       }
     }

@@ -1,6 +1,6 @@
 # Bandhu Configuration Reference
 
-All configurable parameters are set via environment variables or a `.env` file in `backend/`.
+All configurable parameters are set via environment variables or a `.env` file in the process that loads them. Backend settings are loaded by the Rust service; extension settings are read by the VS Code extension process before VS Code starts.
 
 ---
 
@@ -10,6 +10,18 @@ All configurable parameters are set via environment variables or a `.env` file i
 |---|---|---|
 | `BANDHU_BACKEND_URL` | `http://127.0.0.1:3000` | Backend HTTP endpoint for extension API calls. |
 | `BANDHU_CHAT_PLACEHOLDER` | `Ask Bandhu...` | Placeholder shown in the webview chat input. Example: `Describe the coding task...` |
+| `BANDHU_CHAT_TIMEOUT_MS` | `120000` | Milliseconds before `/chat` requests are aborted. Example: `60000` for a one-minute cap. |
+| `BANDHU_CHAT_RETRIES` | `2` | Number of retry attempts for `/chat` request failures after the first attempt. Example: `0` disables retries. |
+| `BANDHU_CHAT_RETRY_DELAY_MS` | `500` | Milliseconds to wait between `/chat` retry attempts. Example: `1000` for a one-second backoff. |
+| `BANDHU_COMMAND_TIMEOUT_MS` | `30000` | Milliseconds before `/approve` requests are aborted. Example: `10000` for a ten-second cap. |
+| `BANDHU_COMMAND_RETRIES` | `1` | Number of retry attempts for `/approve` request failures after the first attempt. Example: `0` disables retries. |
+| `BANDHU_COMMAND_RETRY_DELAY_MS` | `500` | Milliseconds to wait between `/approve` retry attempts. Example: `1000` for a one-second backoff. |
+| `BANDHU_STATUS_TEXT` | `$(check) Bandhu` | Text shown in the VS Code status bar when Bandhu is idle. Example: `$(debug-continue) Bandhu`. |
+| `BANDHU_STATUS_BUSY_TEXT` | `$(loading~spin) Bandhu` | Text shown while a chat request is running. Example: `$(sync~spin) Bandhu`. |
+| `BANDHU_STATUS_ERROR_TEXT` | `$(error) Bandhu` | Text shown after a chat request fails. Example: `$(warning) Bandhu`. |
+| `BANDHU_STATUS_TOOLTIP` | `Ready` | Tooltip shown when Bandhu is idle. Example: `Bandhu is ready`. |
+| `BANDHU_STATUS_BUSY_TOOLTIP` | `Working` | Tooltip shown while a chat request is running. Example: `Bandhu is working`. |
+| `BANDHU_STATUS_ERROR_TOOLTIP` | `Error` | Tooltip shown after a chat request fails. Example: `Bandhu request failed`. |
 
 The extension uses this endpoint for `/chat` and `/approve`. `/chat` returns a compatibility `response` string and a structured `messages` array that the controller forwards to the webview.
 
@@ -125,6 +137,18 @@ Sample validation failure:
 BANDHU_SERVER_HOST=127.0.0.1
 BANDHU_SERVER_PORT=3000
 BANDHU_CHAT_PLACEHOLDER=Ask Bandhu...
+BANDHU_CHAT_TIMEOUT_MS=120000
+BANDHU_CHAT_RETRIES=2
+BANDHU_CHAT_RETRY_DELAY_MS=500
+BANDHU_COMMAND_TIMEOUT_MS=30000
+BANDHU_COMMAND_RETRIES=1
+BANDHU_COMMAND_RETRY_DELAY_MS=500
+BANDHU_STATUS_TEXT=$(check) Bandhu
+BANDHU_STATUS_BUSY_TEXT=$(loading~spin) Bandhu
+BANDHU_STATUS_ERROR_TEXT=$(error) Bandhu
+BANDHU_STATUS_TOOLTIP=Ready
+BANDHU_STATUS_BUSY_TOOLTIP=Working
+BANDHU_STATUS_ERROR_TOOLTIP=Error
 BANDHU_CORS_ORIGINS=*
 BANDHU_OLLAMA_BASE_URL=http://localhost:11434
 BANDHU_OLLAMA_MODEL=qwen2.5-coder:7b
