@@ -1,71 +1,66 @@
-# Bandhu README
+# Bandhu VS Code Extension
 
-This is the README for your extension "bandhu". After writing up a brief description, we recommend including the following sections.
+Bandhu is a local-first AI coding agent that integrates directly into VS Code. This extension provides the user interface for interacting with the Bandhu backend service.
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
-
-For example if there is an image subfolder under your extension project workspace:
-
-\!\[feature X\]\(images/feature-x.png\)
-
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+- **Chat Interface**: Webview-based chat panel for natural language coding tasks
+- **Tool Approval**: Review and approve/reject all file modifications and commands
+- **Diff Preview**: See unified diff previews before approving file changes
+- **Build Loop**: Automatic build after file edits (when enabled)
+- **Test Loop**: Automatic test execution after successful builds
+- **Streaming Support**: Real-time SSE streaming for responsive interactions
+- **Output Channel**: Build and test results logged to dedicated output channel
 
 ## Requirements
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+- Bandhu backend server running locally (see root README)
+- Ollama installed and running
+- VS Code 1.120.0+
 
-## Extension Settings
+## Usage
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+1. Start the Bandhu backend server
+2. Press `F5` in VS Code to launch Extension Development Host
+3. Open the chat panel via status bar or "Bandhu: Open Chat" command
+4. Type coding tasks in natural language
 
-For example:
+## Architecture
 
-This extension contributes the following settings:
+The extension consists of these core modules:
 
-- `myExtension.enable`: Enable/disable this extension.
-- `myExtension.thing`: Set to `blah` to do something.
+| Module | Purpose |
+| ------ | ------- |
+| `extension.ts` | Activation entry point |
+| `controller.ts` | Lifecycle orchestrator |
+| `chatui.ts` | Webview panel for chat |
+| `status.ts` | Status bar item |
+| `api.ts` | HTTP client for backend |
+| `types.ts` | Shared type definitions |
 
-## Known Issues
+See the [Architecture Overview](../ARCHITECTURE.md) for full system design.
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+## Configuration
 
-## Release Notes
+Environment variables (set before starting VS Code):
 
-Users appreciate release notes as you update your extension.
+| Variable | Default | Description |
+| -------- | ------- | ----------- |
+| `BANDHU_BACKEND_URL` | `http://127.0.0.1:3000` | Backend server URL |
+| `BANDHU_CHAT_PLACEHOLDER` | `Ask Bandhu...` | Input placeholder text |
+| `BANDHU_CHAT_STREAMING` | `true` | Use SSE streaming endpoint |
+| `BANDHU_CHAT_TIMEOUT_MS` | `120000` | Request timeout in milliseconds |
 
-### 1.0.0
+See [Configuration Reference](../docs/config.md) for all settings.
 
-Initial release of ...
+## Development
 
-### 1.0.1
+```bash
+npm install
+npm run compile  # Type check, lint, bundle
+npm run watch    # Watch mode for development
+```
 
-Fixed issue #.
+## License
 
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-- [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-- Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-- Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-- Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-- [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-- [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+MIT
