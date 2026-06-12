@@ -11,6 +11,7 @@ export class Controller implements vscode.Disposable {
     private config = fromEnv();
     private chat: ChatPanel = new ChatPanel(this.config.placeholder);
     private report: Report = new Report(this.config.outputName);
+    private active: AbortController | undefined;
 
     constructor(private ctx: vscode.ExtensionContext) {
         ctx.subscriptions.push(this);
@@ -31,18 +32,29 @@ export class Controller implements vscode.Disposable {
 
     private async handleWebviewMsg(msg: WebviewMsg) {
         if (msg.type === 'send' && msg.text) {
+            if (this.active) {
+                this.active.abort();
+            }
+            const controller = new AbortController();
+            this.active = controller;
             this.status.setbusy();
             try {
                 if (this.config.streaming) {
-                    await sendchatstream(msg.text, resmsg => this.handle(resmsg));
+                    await sendchatstream(msg.text, resmsg => this.handle(resmsg), controller.signal);
                 } else {
-                    const res = await sendchat(msg.text);
+                    const res = await sendchat(msg.text, controller.signal);
                     this.show(res);
                 }
-                this.status.setidle();
+                if (this.active === controller) {
+                    this.active = undefined;
+                    this.status.setidle();
+                }
             } catch (e) {
-                this.status.seterror();
-                this.chat.append({ type: 'error', error: String(e) } as ChatMessage);
+                if (this.active === controller) {
+                    this.active = undefined;
+                    this.status.seterror();
+                    this.chat.append({ type: 'error', error: String(e) } as ChatMessage);
+                }
             }
         }
         if (msg.type === 'approve' && msg.id) {

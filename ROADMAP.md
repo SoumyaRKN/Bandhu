@@ -191,7 +191,7 @@ Build a local-first VS Code coding AI agent (Bandhu) that runs mostly free, work
 | 93  | Replace InputBox with Chat UI   | Replace `vscode.window.showInputBox` with proper webview chat input                                                | `Completed` |
 | 94  | Stream Responses Backend        | Add SSE streaming support to `/chat` endpoint                                                                      | `Completed` |
 | 95  | Stream Responses Extension      | Update extension to consume SSE stream and render tokens incrementally                                             | `Completed` |
-| 96  | Add Request Cancellation        | Support cancelling in-flight requests when user sends new input                                                    | `Pending`   |
+| 96  | Add Request Cancellation        | Support cancelling in-flight requests when user sends new input                                                    | `Completed` |
 | 143 | Add Fetch Timeout And Retry     | Configure extension `/chat` and `/approve` calls with environment-controlled timeout, retry count, and retry delay | `Completed` |
 
 ---

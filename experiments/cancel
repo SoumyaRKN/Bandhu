@@ -1,0 +1,7 @@
+To verify request cancellation:
+
+1. Open the Bandhu chat panel in VS Code.
+2. Submit a long-running prompt (or simulate a slow response on the backend).
+3. While the progress bar shows that the request is in-flight/busy, type and submit a new prompt.
+4. Open the VS Code Developer Tools (Help -> Toggle Developer Tools).
+5. Inspect the Network tab and verify that the first request was aborted/cancelled and a second request was initiated.

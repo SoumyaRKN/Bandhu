@@ -8,13 +8,14 @@ const commandretries = intenv('BANDHU_COMMAND_RETRIES', 1);
 const commanddelay = intenv('BANDHU_COMMAND_RETRY_DELAY_MS', 500);
 const backend = process.env.BANDHU_BACKEND_URL || 'http://127.0.0.1:3000';
 
-export async function sendchat(prompt: string): Promise<ChatResponse> {
+export async function sendchat(prompt: string, signal?: AbortSignal): Promise<ChatResponse> {
     const res = await postjson(
         `${backend}/chat`,
         { prompt } as ChatRequest,
         chatms,
         chatretries,
-        chatdelay
+        chatdelay,
+        signal
     );
     const data = await res.json() as ChatResponse;
     if (!res.ok) {
@@ -23,13 +24,14 @@ export async function sendchat(prompt: string): Promise<ChatResponse> {
     return data;
 }
 
-export async function sendchatstream(prompt: string, onmessage: (msg: ChatMessage) => void): Promise<ChatResponse> {
+export async function sendchatstream(prompt: string, onmessage: (msg: ChatMessage) => void, signal?: AbortSignal): Promise<ChatResponse> {
     const res = await postjson(
         `${backend}/chat/stream`,
         { prompt } as ChatRequest,
         chatms,
         0,
-        chatdelay
+        chatdelay,
+        signal
     );
     if (!res.ok) {
         throw new Error(`chat stream failed: ${res.status}`);
@@ -97,13 +99,25 @@ export async function reject(req: ApprovalRequestMsg): Promise<boolean> {
     return res.ok;
 }
 
-async function postjson(url: string, body: unknown, timeout: number, retries: number, delay: number): Promise<Response> {
+async function postjson(url: string, body: unknown, timeout: number, retries: number, delay: number, signal?: AbortSignal): Promise<Response> {
     let attempt = 0;
     let last: unknown;
 
     while (attempt <= retries) {
+        if (signal?.aborted) {
+            throw new Error('request aborted');
+        }
+
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), timeout);
+
+        const onabort = () => {
+            controller.abort();
+        };
+
+        if (signal) {
+            signal.addEventListener('abort', onabort);
+        }
 
         try {
             const res = await fetch(url, {
@@ -112,13 +126,22 @@ async function postjson(url: string, body: unknown, timeout: number, retries: nu
                 body: JSON.stringify(body),
                 signal: controller.signal,
             });
+            if (signal) {
+                signal.removeEventListener('abort', onabort);
+            }
             clearTimeout(timer);
             if (res.ok || attempt >= retries) {
                 return res;
             }
         } catch (err) {
+            if (signal) {
+                signal.removeEventListener('abort', onabort);
+            }
             last = err;
             clearTimeout(timer);
+            if (signal?.aborted) {
+                throw err;
+            }
         } finally {
             clearTimeout(timer);
         }

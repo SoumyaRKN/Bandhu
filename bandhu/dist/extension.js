@@ -282,13 +282,14 @@ var commandms = intenv("BANDHU_COMMAND_TIMEOUT_MS", 3e4);
 var commandretries = intenv("BANDHU_COMMAND_RETRIES", 1);
 var commanddelay = intenv("BANDHU_COMMAND_RETRY_DELAY_MS", 500);
 var backend = process.env.BANDHU_BACKEND_URL || "http://127.0.0.1:3000";
-async function sendchat(prompt) {
+async function sendchat(prompt, signal) {
   const res = await postjson(
     `${backend}/chat`,
     { prompt },
     chatms,
     chatretries,
-    chatdelay
+    chatdelay,
+    signal
   );
   const data = await res.json();
   if (!res.ok) {
@@ -296,13 +297,14 @@ async function sendchat(prompt) {
   }
   return data;
 }
-async function sendchatstream(prompt, onmessage) {
+async function sendchatstream(prompt, onmessage, signal) {
   const res = await postjson(
     `${backend}/chat/stream`,
     { prompt },
     chatms,
     0,
-    chatdelay
+    chatdelay,
+    signal
   );
   if (!res.ok) {
     throw new Error(`chat stream failed: ${res.status}`);
@@ -363,12 +365,21 @@ async function reject(req) {
   );
   return res.ok;
 }
-async function postjson(url, body, timeout, retries, delay) {
+async function postjson(url, body, timeout, retries, delay, signal) {
   let attempt = 0;
   let last;
   while (attempt <= retries) {
+    if (signal?.aborted) {
+      throw new Error("request aborted");
+    }
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeout);
+    const onabort = () => {
+      controller.abort();
+    };
+    if (signal) {
+      signal.addEventListener("abort", onabort);
+    }
     try {
       const res = await fetch(url, {
         method: "POST",
@@ -376,13 +387,22 @@ async function postjson(url, body, timeout, retries, delay) {
         body: JSON.stringify(body),
         signal: controller.signal
       });
+      if (signal) {
+        signal.removeEventListener("abort", onabort);
+      }
       clearTimeout(timer);
       if (res.ok || attempt >= retries) {
         return res;
       }
     } catch (err) {
+      if (signal) {
+        signal.removeEventListener("abort", onabort);
+      }
       last = err;
       clearTimeout(timer);
+      if (signal?.aborted) {
+        throw err;
+      }
     } finally {
       clearTimeout(timer);
     }
@@ -534,6 +554,7 @@ var Controller = class {
   config = fromEnv();
   chat = new ChatPanel(this.config.placeholder);
   report = new Report(this.config.outputName);
+  active;
   async activate() {
     this.chat.create();
     const disposables = [];
@@ -545,18 +566,29 @@ var Controller = class {
   }
   async handleWebviewMsg(msg) {
     if (msg.type === "send" && msg.text) {
+      if (this.active) {
+        this.active.abort();
+      }
+      const controller = new AbortController();
+      this.active = controller;
       this.status.setbusy();
       try {
         if (this.config.streaming) {
-          await sendchatstream(msg.text, (resmsg) => this.handle(resmsg));
+          await sendchatstream(msg.text, (resmsg) => this.handle(resmsg), controller.signal);
         } else {
-          const res = await sendchat(msg.text);
+          const res = await sendchat(msg.text, controller.signal);
           this.show(res);
         }
-        this.status.setidle();
+        if (this.active === controller) {
+          this.active = void 0;
+          this.status.setidle();
+        }
       } catch (e) {
-        this.status.seterror();
-        this.chat.append({ type: "error", error: String(e) });
+        if (this.active === controller) {
+          this.active = void 0;
+          this.status.seterror();
+          this.chat.append({ type: "error", error: String(e) });
+        }
       }
     }
     if (msg.type === "approve" && msg.id) {
