@@ -50,19 +50,25 @@ impl Loop {
         
         let mut messages = vec![];
         let max_iterations = self.config.max_iterations;
+        log::info!("loop start: prompt='{}', max_iterations={}", prompt, max_iterations);
         
         for iteration in 1..=max_iterations {
+            log::info!("loop iteration {}/{}", iteration, max_iterations);
             let full_prompt = self.build_prompt(&prompt, &context);
+            log::debug!("prompt built ({} chars)", full_prompt.len());
             let output = self.model.call(full_prompt).await;
+            log::debug!("model output ({} chars): {}", output.len(), output);
             
             if let Some(tool_call) = self.parse_tool_call(&output) {
                 let tool_id = &tool_call.id;
                 let tool = self.registry.get(tool_id);
+                log::info!("tool call detected: id='{}', found={}", tool_id, tool.is_some());
                 
                 match tool {
                     Some(tool) => {
                         if tool.requires() {
                             if let Err(e) = self.gate.check(&tool_call.input, tool_id) {
+                                log::error!("safety filter rejected tool '{}': {}", tool_id, e);
                                 messages.push(json!({
                                     "type": "tool_error",
                                     "tool": tool_id,
@@ -96,6 +102,7 @@ impl Loop {
                                     "diff": diff
                                 });
                                 messages.push(approval_msg.clone());
+                                log::info!("approval requested: id='{}', tool='{}'", req_id, tool_id);
                                 
                                 if tool_id == "writefile" {
                                     {
@@ -112,6 +119,7 @@ impl Loop {
                                 
                                 match rx.await {
                                     Ok(true) => {
+                                        log::info!("approval granted: id='{}'", req_id);
                                         let stored_input = if tool_id == "writefile" {
                                             let guard = self.pending_writes.read().await;
                                             guard.get(&req_id).cloned().unwrap_or_else(|| tool_input.clone())
@@ -119,18 +127,25 @@ impl Loop {
                                             tool_input
                                         };
                                         
+                                        log::debug!("executing tool '{}' with input: {:?}", tool_id, stored_input);
                                         let result = tool.execute(stored_input);
                                         let result_value = match result {
-                                            Ok(v) => json!({
-                                                "type": "tool_result",
-                                                "id": req_id,
-                                                "result": v
-                                            }),
-                                            Err(e) => json!({
-                                                "type": "tool_error",
-                                                "id": req_id,
-                                                "error": e
-                                            }),
+                                            Ok(v) => {
+                                                log::info!("tool '{}' executed successfully", tool_id);
+                                                json!({
+                                                    "type": "tool_result",
+                                                    "id": req_id,
+                                                    "result": v
+                                                })
+                                            }
+                                            Err(e) => {
+                                                log::error!("tool '{}' execution failed: {}", tool_id, e);
+                                                json!({
+                                                    "type": "tool_error",
+                                                    "id": req_id,
+                                                    "error": e
+                                                })
+                                            }
                                         };
                                         
                                         if tool_id == "writefile" {
@@ -141,6 +156,7 @@ impl Loop {
                                         context = append_context(&context, result_value);
                                     }
                                     Ok(false) => {
+                                        log::info!("approval rejected: id='{}'", req_id);
                                         let reject_msg = json!({
                                             "type": "tool_error",
                                             "id": req_id,
@@ -149,6 +165,7 @@ impl Loop {
                                         context = append_context(&context, reject_msg);
                                     }
                                     Err(_) => {
+                                        log::warn!("approval timeout: id='{}'", req_id);
                                         let timeout_msg = json!({
                                             "type": "tool_error",
                                             "id": req_id,
@@ -161,23 +178,31 @@ impl Loop {
                             }
                         }
                         
+                        log::debug!("executing tool '{}' with input: {:?}", tool_id, tool_call.input);
                         let result = tool.execute(tool_call.input);
                         let result_value = match result {
-                            Ok(v) => json!({
-                                "type": "tool_result",
-                                "id": tool_id,
-                                "result": v
-                            }),
-                            Err(e) => json!({
-                                "type": "tool_error",
-                                "id": tool_id,
-                                "error": e
-                            }),
+                            Ok(v) => {
+                                log::info!("tool '{}' executed successfully", tool_id);
+                                json!({
+                                    "type": "tool_result",
+                                    "id": tool_id,
+                                    "result": v
+                                })
+                            }
+                            Err(e) => {
+                                log::error!("tool '{}' execution failed: {}", tool_id, e);
+                                json!({
+                                    "type": "tool_error",
+                                    "id": tool_id,
+                                    "error": e
+                                })
+                            }
                         };
                         context = append_context(&context, result_value);
                         continue;
                     }
                     None => {
+                        log::warn!("tool not found: '{}'", tool_id);
                         messages.push(json!({
                             "type": "error",
                             "error": format!("tool not found: {}", tool_id)
@@ -186,11 +211,13 @@ impl Loop {
                 }
             }
             
+            log::info!("final response received ({} chars)", output.len());
             messages.push(json!({
                 "type": "response",
                 "content": output
             }));
             
+            log::info!("loop complete after {} iterations", iteration);
             return json!({
                 "type": "complete",
                 "messages": messages,
@@ -198,6 +225,7 @@ impl Loop {
             });
         }
         
+        log::warn!("max iterations reached: {}", max_iterations);
         messages.push(json!({
             "type": "error",
             "error": "max iterations reached"
@@ -292,6 +320,8 @@ fn append_context(context: &Value, new: Value) -> Value {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use env_logger;
+    use tokio::runtime::Runtime;
     
     #[test]
     fn builds_prompt() {
@@ -343,5 +373,27 @@ mod tests {
         let tool_call = loop_handler.parse_tool_call(output);
         
         assert!(tool_call.is_none());
+    }
+
+    #[test]
+    fn loop_runs_with_logging() {
+        let _ = env_logger::try_init();
+        let registry = ToolRegistry::new();
+        let config = Config::from_env();
+        let gate = Arc::new(Gate::new(config.clone()));
+        let pending = Arc::new(RwLock::new(HashMap::new()));
+        let pending_writes = Arc::new(RwLock::new(HashMap::new()));
+        let loop_handler = Loop::new(registry, config, gate, pending, pending_writes);
+        
+        let request = json!({
+            "prompt": "what is 2+2?",
+            "context": Value::Null
+        });
+        
+        let rt = Runtime::new().unwrap();
+        let result = rt.block_on(loop_handler.run(request));
+        
+        assert_eq!(result.get("type").and_then(|v| v.as_str()), Some("complete"));
+        assert!(result.get("messages").and_then(|v| v.as_array()).is_some());
     }
 }

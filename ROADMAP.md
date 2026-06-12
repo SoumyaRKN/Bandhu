@@ -129,8 +129,8 @@ Build a local-first VS Code coding AI agent (Bandhu) that runs mostly free, work
 | 61 | Parse Tool Responses | Implement parser for model tool call responses (JSON format) | `Completed` |
 | 62 | Handle Tool Errors | Implement error handling for failed tool executions within the loop | `Completed` |
 | 63 | Implement Loop Termination | Define conditions to break the loop (task completed, error encountered, max iterations) | `Completed` |
-| 64 | Test Simple Tool Chain | Verify a simple sequence: ReadFile → Search → respond works correctly | `Pending` |
-| 65 | Add Loop Logging | Add structured logging for each iteration of the tool loop | `Pending` |
+| 64 | Test Simple Tool Chain | Verify a simple sequence: ReadFile → Search → respond works correctly | `Completed` |
+| 65 | Add Loop Logging | Add structured logging for each iteration of the tool loop | `Completed` |
 
 ---
 

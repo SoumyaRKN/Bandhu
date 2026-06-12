@@ -68,6 +68,14 @@ All configurable parameters are set via environment variables or a `.env` file i
 
 ---
 
+## Logging
+
+| Variable | Default | Description |
+|---|---|---|
+| `BANDHU_LOG_LEVEL` | `info` | Logging verbosity. Accepted values: `error`, `warn`, `info`, `debug`, `trace`. |
+
+---
+
 ## Sample `.env`
 
 ```env

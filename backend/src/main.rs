@@ -9,6 +9,8 @@ use serde_json::Value;
 use std::sync::Arc;
 use tokio::sync::{oneshot, RwLock};
 use std::collections::HashMap;
+use log;
+use env_logger;
 
 mod config;
 mod context;
@@ -157,6 +159,7 @@ async fn approve_handler(
 
 #[tokio::main]
 async fn main() {
+    env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
     let config = Config::from_env();
     let mut registry = ToolRegistry::new();
 
