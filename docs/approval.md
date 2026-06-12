@@ -2,7 +2,7 @@
 
 ## Overview
 
-Every `writefile` and `runcommand` execution goes through the **Approval Gate** before the safety filter permits execution.
+Every `writefile` and `runcommand` execution goes through input validation and the **Approval Gate** before the safety filter permits execution.
 
 ## UI Types
 
@@ -14,7 +14,8 @@ The extension supports two approval UI modes:
 ## Sequence
 
 1. The model calls a tool that marks `requires == true`.
-2. The safety filter scans the tool input against forbidden commands and paths.
+2. The tool input is validated against its schema and size limit.
+3. The safety filter scans the tool input against forbidden commands and paths.
 3. If the input is blocked, the loop returns a `tool_error` message.
 4. If the input passes, the backend emits a `tool_approval` message.
 5. The webview displays inline approval buttons (Approve/Reject) with tool details:
@@ -57,6 +58,8 @@ The gate checks `BANDHU_FORBIDDEN_CMDS` and `BANDHU_FORBIDDEN_PATHS` from `backe
 |---|---|---|
 | `BANDHU_DEFAULT_APPROVAL` | `false` | When `true`, bypasses the user prompt. |
 | `BANDHU_APPROVAL_TIMEOUT_SECS` | `300` | Timeout for pending approval. |
+| `BANDHU_SCHEMA_VALIDATE` | `true` | Validates tool inputs before approval and execution. |
+| `BANDHU_TOOL_INPUT_LIMIT` | `65536` | Max serialized JSON bytes allowed for a tool input. |
 
 ## Messages
 

@@ -30,6 +30,7 @@ mod writefile;
 use crate::applypatch::Applypatch;
 use crate::config::Config;
 use crate::context::ContextBuilder;
+use crate::error::BackendError;
 use crate::gate::Gate;
 use crate::listdir::Listdir;
 use crate::queue::Loop;
@@ -130,6 +131,16 @@ async fn call_handler(
     State(state): State<AppState>,
     Json(payload): Json<CallRequest>,
 ) -> Result<Json<CallResponse>, StatusCode> {
+    let config = Config::from_env();
+    validatecallinput(&config, &state.registry, &payload.tool, &payload.input).map_err(|e| {
+        log::warn!(
+            "call validation failed: tool='{}', error={}",
+            payload.tool,
+            e
+        );
+        StatusCode::BAD_REQUEST
+    })?;
+
     let tool = state
         .registry
         .get(&payload.tool)
@@ -138,6 +149,31 @@ async fn call_handler(
         .execute(payload.input)
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
     Ok(Json(CallResponse { result }))
+}
+
+fn validatecallinput(
+    config: &Config,
+    registry: &ToolRegistry,
+    tool: &str,
+    input: &Value,
+) -> Result<(), BackendError> {
+    let size = serde_json::to_string(input)
+        .map_err(|e| BackendError::Parse(e.to_string()))?
+        .len();
+    if size > config.tool_input_limit {
+        return Err(BackendError::Tool(format!(
+            "input exceeds {} bytes",
+            config.tool_input_limit
+        )));
+    }
+
+    if !config.schema_validate {
+        return Ok(());
+    }
+
+    registry
+        .validate(tool, input)
+        .map_err(|e| BackendError::Tool(e.to_string()))
 }
 
 async fn context_handler(

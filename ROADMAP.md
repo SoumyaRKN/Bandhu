@@ -26,7 +26,7 @@ Build a local-first VS Code coding AI agent (Bandhu) that runs mostly free, work
 | 7 | Install Rust | Run rustup install script, verify with `rustc --version && cargo --version` | `Completed` |
 | 8 | Install VS Code | Install official VS Code .deb package, verify with `code .` command | `Completed` |
 | 9 | Install ripgrep | Run `sudo apt install ripgrep` for fast text search | `Completed` |
-| 10 | Install Python | Install Python 3 for scripts and tooling (if not already present) | `Pending` |
+| 10 | Install Python | Install Python 3 for scripts and tooling (if not already present) | `Completed` |
 
 ---
 
@@ -114,7 +114,7 @@ Build a local-first VS Code coding AI agent (Bandhu) that runs mostly free, work
 | 53 | Implement RunCommand Tool | Create `Runcommand` tool: executes shell commands (requires approval) | `Completed` |
 | 54 | Implement ListDir Tool | Create `Listdir` tool: list directory entries | `Completed` |
 | 55 | Add Tool Registry | Create tool registry to map tool IDs to implementations | `Completed` |
-| 56 | Add Tool Validation | Implement JSON Schema validation for tool inputs before execution | `Pending` |
+| 56 | Add Tool Validation | Implement JSON Schema validation for tool inputs before execution | `Completed` |
 | 57 | Document Tool APIs | Write documentation for each tool's input/output format | `Pending` |
 
 ---
@@ -328,7 +328,7 @@ These are high-priority items discovered during the audit that block further dev
 | P1 | Ollama client is inline in `queue.rs` instead of `model.rs` | `backend/src/queue.rs:219` | Extract into `backend/src/model.rs` | `Pending` |
 | P1 | `writefile` overwrites directly — no diff/patch system | `backend/src/writefile.rs` | Implement diff generation and patch application | `Completed` |
 | P1 | No `BackendError` enum — errors are bare `String`s | Throughout backend | Create typed error enum | `Completed` |
-| P1 | No JSON Schema validation on tool inputs | `backend/src/tool.rs` | Add `validate(input) -> Result<()>` to `Tool` trait | `Pending` |
+| P1 | No JSON Schema validation on tool inputs | `backend/src/tool.rs` | Add `validate(input) -> Result<()>` to `Tool` trait | `Completed` |
 | P2 | Extension routing types mismatch — `types.ts` `id` field vs backend `request_id` | `bandhu/src/types.ts`, `backend/src/queue.rs` | Align field names | `Pending` |
 | P2 | No streaming support for `/chat` | `backend/src/main.rs`, `bandhu/src/api.ts` | Implement SSE streaming | `Pending` |
 | P2 | `gate.rs` does package install detection only via broad command filter | `backend/src/gate.rs` | Add specific package manager pattern matching | `Pending` |

@@ -8,6 +8,7 @@ Personal Coding AI Agent — local-first, runs entirely on your machine using lo
 - **Approval-driven** — Every file edit and shell command requires explicit user confirmation.
 - **Multi-tool loop** — The agent autonomously chains tools (read, search, write, run, list) to complete tasks.
 - **Safety filter** — Dangerous commands and forbidden paths are blocked before execution.
+- **Tool validation** — Tool inputs are checked against schemas and size limits before execution.
 - **Incremental context** — Only relevant files are sent to the model, keeping the context window efficient.
 - **Type-safe** — Rust backend with typed errors; TypeScript extension with strict typing.
 
@@ -141,10 +142,14 @@ All configuration is managed via **environment variables**. Create a `.env` file
 | `BANDHU_OLLAMA_STREAM` | `false` | Enable streaming responses (`true`/`false`) |
 | `BANDHU_MAX_ITERATIONS` | `10` | Max tool-call loop iterations per request |
 | `BANDHU_RG_MAX_COUNT` | `50` | Max ripgrep matches for context building |
+| `BANDHU_SCHEMA_VALIDATE` | `true` | Validate tool inputs against registered tool schemas |
+| `BANDHU_TOOL_INPUT_LIMIT` | `65536` | Max serialized JSON bytes allowed for a tool input |
 | `BANDHU_DEFAULT_APPROVAL` | `false` | Auto-approve all tool calls (`true`/`false`) |
 | `BANDHU_APPROVAL_TIMEOUT_SECS` | `300` | Seconds before approval prompt times out |
 | `BANDHU_FORBIDDEN_CMDS` | *(empty)* | Comma-separated forbidden command patterns |
 | `BANDHU_FORBIDDEN_PATHS` | *(empty)* | Comma-separated forbidden path patterns |
+| `BANDHU_CONTEXT_TOKEN_LIMIT` | `8192` | Approximate model context token budget |
+| `BANDHU_OLLAMA_TIMEOUT_SECS` | `120` | Max seconds to wait for a single Ollama request |
 
 **Example `.env` file:**
 
@@ -156,10 +161,14 @@ BANDHU_OLLAMA_MODEL=qwen2.5-coder:7b
 BANDHU_OLLAMA_STREAM=false
 BANDHU_MAX_ITERATIONS=10
 BANDHU_RG_MAX_COUNT=50
+BANDHU_SCHEMA_VALIDATE=true
+BANDHU_TOOL_INPUT_LIMIT=65536
 BANDHU_DEFAULT_APPROVAL=false
 BANDHU_APPROVAL_TIMEOUT_SECS=300
 BANDHU_FORBIDDEN_CMDS=rm -rf,sudo
 BANDHU_FORBIDDEN_PATHS=/etc/passwd,/etc/shadow
+BANDHU_CONTEXT_TOKEN_LIMIT=8192
+BANDHU_OLLAMA_TIMEOUT_SECS=120
 ```
 
 Load with:

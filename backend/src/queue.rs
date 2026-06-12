@@ -1,5 +1,6 @@
 use crate::config::Config;
 use crate::context::ContextBuilder;
+use crate::error::{BackendError, BackendResult};
 use crate::gate::Gate;
 use crate::model::Model;
 use crate::registry::ToolRegistry;
@@ -82,6 +83,16 @@ impl Loop {
 
                 match tool {
                     Some(tool) => {
+                        if let Err(e) = self.validateinput(tool_id, &tool_call.input) {
+                            log::error!("tool validation failed: tool='{}', error={}", tool_id, e);
+                            messages.push(json!({
+                                "type": "tool_error",
+                                "tool": tool_id,
+                                "error": e.to_string()
+                            }));
+                            continue;
+                        }
+
                         if tool.requires() {
                             if let Err(e) = self.gate.check(&tool_call.input, tool_id) {
                                 log::error!("safety filter rejected tool '{}': {}", tool_id, e);
@@ -280,6 +291,26 @@ impl Loop {
         })
     }
 
+    fn validateinput(&self, tool_id: &str, input: &Value) -> BackendResult<()> {
+        let size = serde_json::to_string(input)
+            .map_err(|e| BackendError::Parse(e.to_string()))?
+            .len();
+        if size > self.config.tool_input_limit {
+            return Err(BackendError::Tool(format!(
+                "input exceeds {} bytes",
+                self.config.tool_input_limit
+            )));
+        }
+
+        if !self.config.schema_validate {
+            return Ok(());
+        }
+
+        self.registry
+            .validate(tool_id, input)
+            .map_err(|e| BackendError::Tool(e.to_string()))
+    }
+
     fn build_prompt(&self, prompt: &str, context: &Value) -> String {
         let tools = self.registry.ids();
         let tools_json: Vec<Value> = tools
@@ -362,6 +393,7 @@ fn append_context(context: &Value, new: Value) -> Value {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::readfile::Readfile;
     use env_logger;
     use tokio::runtime::Runtime;
 
@@ -415,6 +447,52 @@ mod tests {
         let tool_call = loop_handler.parse_tool_call(output);
 
         assert!(tool_call.is_none());
+    }
+
+    #[test]
+    fn validatesinput() {
+        let mut registry = ToolRegistry::new();
+        registry.register(Arc::new(Readfile)).unwrap();
+        let config = Config::from_env();
+        let gate = Arc::new(Gate::new(config.clone()));
+        let pending = Arc::new(RwLock::new(HashMap::new()));
+        let pending_writes = Arc::new(RwLock::new(HashMap::new()));
+        let loop_handler = Loop::new(registry, config, gate, pending, pending_writes);
+
+        let result = loop_handler.validateinput("readfile", &json!({"path": ""}));
+
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn skipsschema() {
+        let mut registry = ToolRegistry::new();
+        registry.register(Arc::new(Readfile)).unwrap();
+        let mut config = Config::from_env();
+        config.schema_validate = false;
+        let gate = Arc::new(Gate::new(config.clone()));
+        let pending = Arc::new(RwLock::new(HashMap::new()));
+        let pending_writes = Arc::new(RwLock::new(HashMap::new()));
+        let loop_handler = Loop::new(registry, config, gate, pending, pending_writes);
+
+        let result = loop_handler.validateinput("readfile", &json!({"path": ""}));
+
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn rejectslargeinput() {
+        let registry = ToolRegistry::new();
+        let mut config = Config::from_env();
+        config.tool_input_limit = 8;
+        let gate = Arc::new(Gate::new(config.clone()));
+        let pending = Arc::new(RwLock::new(HashMap::new()));
+        let pending_writes = Arc::new(RwLock::new(HashMap::new()));
+        let loop_handler = Loop::new(registry, config, gate, pending, pending_writes);
+
+        let result = loop_handler.validateinput("readfile", &json!({"path": "toolong"}));
+
+        assert!(result.is_err());
     }
 
     #[test]

@@ -37,6 +37,8 @@ All configurable parameters are set via environment variables or a `.env` file i
 |---|---|---|
 | `BANDHU_MAX_ITERATIONS` | `10` | Max tool-call loop iterations per request. |
 | `BANDHU_RG_MAX_COUNT` | `50` | Max ripgrep matches returned per search. |
+| `BANDHU_SCHEMA_VALIDATE` | `true` | Validate tool input against each tool schema before execution. Set to `false` only for debugging. |
+| `BANDHU_TOOL_INPUT_LIMIT` | `65536` | Max serialized JSON bytes allowed for a tool input payload. |
 
 ---
 
@@ -55,8 +57,17 @@ All configurable parameters are set via environment variables or a `.env` file i
 
 | Variable | Default | Description |
 |---|---|---|
+| `BANDHU_CONTEXT_TOKEN_LIMIT` | `8192` | Approximate token budget used when packing context for the model. |
 | `BANDHU_CONTEXT_TOP_N` | `10` | Max candidate files selected during the select stage. |
 | `BANDHU_CONTEXT_MAX_FILE_BYTES` | `65536` | Max file size in bytes before truncation during the read stage. |
+
+---
+
+## Ollama Runtime Settings
+
+| Variable | Default | Description |
+|---|---|---|
+| `BANDHU_OLLAMA_TIMEOUT_SECS` | `120` | Max seconds to wait for a single Ollama request before timing out. |
 
 ---
 
@@ -65,6 +76,28 @@ All configurable parameters are set via environment variables or a `.env` file i
 | Variable | Default | Description |
 |---|---|---|
 | `BANDHU_PROMPT_TEMPLATE` | _(built-in)_ | Python-style format string for the tool loop prompt. Use `{}` placeholders for tools list, context, and task. |
+
+---
+
+## Tool Validation
+
+Tool validation runs before safety checks and execution in both the tool-call loop and the `/call` endpoint.
+
+| Setting | Default | Behavior |
+|---|---|---|
+| `BANDHU_SCHEMA_VALIDATE=true` | `true` | Rejects tool inputs that fail the registered tool schema, such as missing required fields or wrong types. |
+| `BANDHU_SCHEMA_VALIDATE=false` | `false` | Skips schema validation while still enforcing `BANDHU_TOOL_INPUT_LIMIT`. |
+| `BANDHU_TOOL_INPUT_LIMIT=65536` | `65536` | Rejects serialized JSON inputs larger than the configured byte limit. |
+
+Sample validation failure:
+
+```json
+{
+  "type": "tool_error",
+  "tool": "readfile",
+  "error": "tool error: path is empty"
+}
+```
 
 ---
 
@@ -86,9 +119,13 @@ BANDHU_OLLAMA_MODEL=qwen2.5-coder:7b
 BANDHU_OLLAMA_STREAM=false
 BANDHU_MAX_ITERATIONS=10
 BANDHU_RG_MAX_COUNT=50
+BANDHU_SCHEMA_VALIDATE=true
+BANDHU_TOOL_INPUT_LIMIT=65536
 BANDHU_DEFAULT_APPROVAL=false
 BANDHU_APPROVAL_TIMEOUT_SECS=300
 BANDHU_FORBIDDEN_CMDS=rm -rf,sudo,del /f
 BANDHU_FORBIDDEN_PATHS=/etc/passwd,.env
 BANDHU_PROMPT_TEMPLATE=Available tools:\n{}\n\nContext:\n{}\n\nTask: {}
+BANDHU_CONTEXT_TOKEN_LIMIT=8192
+BANDHU_OLLAMA_TIMEOUT_SECS=120
 ```
