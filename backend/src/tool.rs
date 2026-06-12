@@ -1,3 +1,4 @@
+use crate::error::BackendResult;
 use serde_json::Value;
 
 pub trait Tool: Send + Sync {
@@ -5,11 +6,11 @@ pub trait Tool: Send + Sync {
     fn name(&self) -> &'static str;
     fn desc(&self) -> &'static str;
     fn schema(&self) -> Value;
-    fn execute(&self, input: Value) -> Result<Value, String>;
+    fn execute(&self, input: Value) -> BackendResult<Value>;
     fn requires(&self) -> bool {
         false
     }
-    fn validate(&self, input: &Value) -> Result<(), String>;
+    fn validate(&self, input: &Value) -> BackendResult<()>;
 }
 
 #[cfg(test)]
@@ -35,11 +36,11 @@ mod tests {
             serde_json::json!({})
         }
 
-        fn execute(&self, input: Value) -> Result<Value, String> {
+        fn execute(&self, input: Value) -> BackendResult<Value> {
             Ok(input)
         }
 
-        fn validate(&self, _input: &Value) -> Result<(), String> {
+        fn validate(&self, _input: &Value) -> BackendResult<()> {
             Ok(())
         }
     }

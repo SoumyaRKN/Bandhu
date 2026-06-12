@@ -1,3 +1,4 @@
+use crate::error::{BackendError, BackendResult};
 use serde_json::Value;
 use std::fs;
 
@@ -31,8 +32,8 @@ impl crate::tool::Tool for Listdir {
     fn requires(&self) -> bool {
         false
     }
-    fn execute(&self, input: Value) -> Result<Value, String> {
-        let root = std::env::current_dir().map_err(|e| e.to_string())?;
+    fn execute(&self, input: Value) -> BackendResult<Value> {
+        let root = std::env::current_dir().map_err(|e| BackendError::Io(e.to_string()))?;
         let target = if let Some(p) = input.get("path").and_then(|v| v.as_str()) {
             if p.is_empty() {
                 root.clone()
@@ -56,7 +57,7 @@ impl crate::tool::Tool for Listdir {
         }
         Ok(serde_json::json!({"path": target.display().to_string(), "entries": entries}))
     }
-    fn validate(&self, _input: &Value) -> Result<(), String> {
+    fn validate(&self, _input: &Value) -> BackendResult<()> {
         Ok(())
     }
 }
@@ -81,7 +82,10 @@ mod tests {
         let tool = Listdir;
         let schema = tool.schema();
 
-        assert_eq!(schema.get("type").and_then(serde_json::Value::as_str), Some("object"));
+        assert_eq!(
+            schema.get("type").and_then(serde_json::Value::as_str),
+            Some("object")
+        );
         assert!(schema
             .get("properties")
             .and_then(serde_json::Value::as_object)

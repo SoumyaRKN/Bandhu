@@ -1,20 +1,21 @@
 use axum::{
-    extract::{State, Json},
+    extract::{Json, State},
     http::StatusCode,
     routing::{get, post},
     Router,
 };
+use env_logger;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::{oneshot, RwLock};
-use std::collections::HashMap;
-use log;
-use env_logger;
 
+mod applypatch;
 mod config;
 mod context;
 mod diff;
+mod error;
 mod gate;
 mod listdir;
 mod model;
@@ -25,19 +26,18 @@ mod runcommand;
 mod search;
 mod tool;
 mod writefile;
-mod applypatch;
 
 use crate::applypatch::Applypatch;
 use crate::config::Config;
 use crate::context::ContextBuilder;
 use crate::gate::Gate;
+use crate::listdir::Listdir;
 use crate::queue::Loop;
 use crate::readfile::Readfile;
 use crate::registry::ToolRegistry;
 use crate::runcommand::Runcommand;
 use crate::search::Search;
 use crate::writefile::Writefile;
-use crate::listdir::Listdir;
 
 #[derive(Debug, Deserialize)]
 struct ChatRequest {
@@ -112,7 +112,8 @@ async fn chat_handler(
     });
 
     let response_value = loop_handler.run(request_value).await;
-    let response_text = response_value.get("messages")
+    let response_text = response_value
+        .get("messages")
         .and_then(Value::as_array)
         .and_then(|arr| arr.last())
         .and_then(|msg| msg.get("content"))
@@ -129,8 +130,13 @@ async fn call_handler(
     State(state): State<AppState>,
     Json(payload): Json<CallRequest>,
 ) -> Result<Json<CallResponse>, StatusCode> {
-    let tool = state.registry.get(&payload.tool).ok_or(StatusCode::NOT_FOUND)?;
-    let result = tool.execute(payload.input).map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    let tool = state
+        .registry
+        .get(&payload.tool)
+        .ok_or(StatusCode::NOT_FOUND)?;
+    let result = tool
+        .execute(payload.input)
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
     Ok(Json(CallResponse { result }))
 }
 
@@ -164,11 +170,21 @@ async fn main() {
     let mut registry = ToolRegistry::new();
 
     registry.register(Arc::new(Readfile)).unwrap();
-    registry.register(Arc::new(Search::new(config.clone()))).unwrap();
-    registry.register(Arc::new(Writefile::new(config.clone()))).unwrap();
-    registry.register(Arc::new(Applypatch::new(config.clone()))).unwrap();
-    registry.register(Arc::new(Runcommand::new(config.clone()))).unwrap();
-    registry.register(Arc::new(Listdir::new(config.clone()))).unwrap();
+    registry
+        .register(Arc::new(Search::new(config.clone())))
+        .unwrap();
+    registry
+        .register(Arc::new(Writefile::new(config.clone())))
+        .unwrap();
+    registry
+        .register(Arc::new(Applypatch::new(config.clone())))
+        .unwrap();
+    registry
+        .register(Arc::new(Runcommand::new(config.clone())))
+        .unwrap();
+    registry
+        .register(Arc::new(Listdir::new(config.clone())))
+        .unwrap();
 
     let app_state = AppState {
         registry: Arc::new(registry),

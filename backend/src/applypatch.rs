@@ -1,3 +1,4 @@
+use crate::error::{BackendError, BackendResult};
 use crate::tool::Tool;
 use serde_json::{json, Value};
 use std::{fs, path::PathBuf};
@@ -33,43 +34,43 @@ impl Tool for Applypatch {
     fn requires(&self) -> bool {
         true
     }
-    fn execute(&self, input: Value) -> Result<Value, String> {
+    fn execute(&self, input: Value) -> BackendResult<Value> {
         let Some(path) = input.get("path").and_then(|v| v.as_str()) else {
-            return Err("missing path".into());
+            return Err(BackendError::Tool("missing path".into()));
         };
         let Some(patch) = input.get("patch").and_then(|v| v.as_str()) else {
-            return Err("missing patch".into());
+            return Err(BackendError::Tool("missing patch".into()));
         };
-        
+
         let path_buf = PathBuf::from(path);
-        
+
         let existing = fs::read_to_string(&path_buf).unwrap_or_default();
-        
+
         let new_content = crate::diff::apply(patch, &existing)
-            .map_err(|e| format!("patch failed: {}", e))?;
-        
+            .map_err(|e| BackendError::Tool(format!("patch failed: {}", e)))?;
+
         if let Some(parent) = path_buf.parent() {
-            fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+            fs::create_dir_all(parent).map_err(|e| BackendError::Io(e.to_string()))?;
         }
-        fs::write(&path_buf, new_content).map_err(|e| e.to_string())?;
-        
+        fs::write(&path_buf, new_content).map_err(|e| BackendError::Io(e.to_string()))?;
+
         Ok(json!({"path": path_buf.display().to_string(), "status": "applied"}))
     }
-    fn validate(&self, input: &Value) -> Result<(), String> {
+    fn validate(&self, input: &Value) -> BackendResult<()> {
         if !input.is_object() {
-            return Err("input must be object".into());
+            return Err(BackendError::Tool("input must be object".into()));
         }
         let Some(path) = input.get("path").and_then(|v| v.as_str()) else {
-            return Err("missing path".into());
+            return Err(BackendError::Tool("missing path".into()));
         };
         if path.trim().is_empty() {
-            return Err("path is empty".into());
+            return Err(BackendError::Tool("path is empty".into()));
         }
         let Some(patch) = input.get("patch").and_then(|v| v.as_str()) else {
-            return Err("missing patch".into());
+            return Err(BackendError::Tool("missing patch".into()));
         };
         if patch.trim().is_empty() {
-            return Err("patch is empty".into());
+            return Err(BackendError::Tool("patch is empty".into()));
         }
         Ok(())
     }

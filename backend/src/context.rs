@@ -44,7 +44,10 @@ impl ContextBuilder {
                                 .and_then(|p| p.as_str())
                                 .unwrap_or("")
                                 .to_string();
-                            let score = self.score_match(task, m.get("text").and_then(|t| t.as_str()).unwrap_or(""));
+                            let score = self.score_match(
+                                task,
+                                m.get("text").and_then(|t| t.as_str()).unwrap_or(""),
+                            );
                             candidates.push(Candidate { path, score });
                         }
                     }
@@ -129,7 +132,6 @@ struct Contents {
 mod tests {
     use super::*;
     use crate::config::Config;
-    use std::fs;
 
     #[test]
     fn extracts_keywords() {

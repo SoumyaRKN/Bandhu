@@ -1,3 +1,4 @@
+use crate::error::{BackendError, BackendResult};
 use crate::tool::Tool;
 use serde_json::{json, Value};
 use std::fs;
@@ -31,10 +32,10 @@ impl Tool for Readfile {
         })
     }
 
-    fn execute(&self, input: Value) -> Result<Value, String> {
+    fn execute(&self, input: Value) -> BackendResult<Value> {
         let path = self.require_path(&input)?;
         let path = PathBuf::from(path);
-        let text = fs::read_to_string(&path).map_err(|e| e.to_string())?;
+        let text = fs::read_to_string(&path).map_err(|e| BackendError::Io(e.to_string()))?;
 
         Ok(json!({
             "path": path.display().to_string(),
@@ -42,10 +43,10 @@ impl Tool for Readfile {
         }))
     }
 
-    fn validate(&self, input: &Value) -> Result<(), String> {
+    fn validate(&self, input: &Value) -> BackendResult<()> {
         let path = self.require_path(input)?;
         if path.trim().is_empty() {
-            return Err("path is empty".into());
+            return Err(BackendError::Tool("path is empty".into()));
         }
         Ok(())
     }
@@ -56,9 +57,13 @@ impl Tool for Readfile {
 }
 
 impl Readfile {
-    fn require_path(&self, input: &Value) -> Result<String, String> {
-        let value = input.get("path").ok_or("missing path")?;
-        let value = value.as_str().ok_or("path must be string")?;
+    fn require_path(&self, input: &Value) -> BackendResult<String> {
+        let value = input
+            .get("path")
+            .ok_or(BackendError::Tool("missing path".into()))?;
+        let value = value
+            .as_str()
+            .ok_or(BackendError::Tool("path must be string".into()))?;
         Ok(value.to_string())
     }
 }

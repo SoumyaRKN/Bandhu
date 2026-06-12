@@ -1,3 +1,4 @@
+use crate::error::{BackendError, BackendResult};
 use crate::gate::Gate;
 use crate::tool::Tool;
 use serde_json::{json, Value};
@@ -37,16 +38,17 @@ impl Tool for Runcommand {
     fn requires(&self) -> bool {
         true
     }
-    fn execute(&self, input: Value) -> Result<Value, String> {
+    fn execute(&self, input: Value) -> BackendResult<Value> {
         let Some(command) = input.get("command").and_then(|v| v.as_str()) else {
-            return Err("missing command".into());
+            return Err(BackendError::Tool("missing command".into()));
         };
         self.gate.check(&input, self.id())?;
         let output = if cfg!(target_os = "windows") {
             Command::new("cmd").args(["/C", command]).output()
         } else {
             Command::new("sh").args(["-c", command]).output()
-        }.map_err(|e| format!("failed to run command: {}", e))?;
+        }
+        .map_err(|e| BackendError::Io(format!("failed to run command: {}", e)))?;
         let stdout = String::from_utf8_lossy(&output.stdout).to_string();
         let stderr = String::from_utf8_lossy(&output.stderr).to_string();
         Ok(json!({
@@ -55,15 +57,15 @@ impl Tool for Runcommand {
             "status": output.status.code().unwrap_or(-1)
         }))
     }
-    fn validate(&self, input: &Value) -> Result<(), String> {
+    fn validate(&self, input: &Value) -> BackendResult<()> {
         if !input.is_object() {
-            return Err("input must be object".into());
+            return Err(BackendError::Tool("input must be object".into()));
         }
         let Some(command) = input.get("command").and_then(|v| v.as_str()) else {
-            return Err("missing command".into());
+            return Err(BackendError::Tool("missing command".into()));
         };
         if command.trim().is_empty() {
-            return Err("command is empty".into());
+            return Err(BackendError::Tool("command is empty".into()));
         }
         Ok(())
     }

@@ -1,4 +1,5 @@
 use crate::config::Config;
+use crate::error::{BackendError, BackendResult};
 use serde_json::Value;
 use std::path::PathBuf;
 
@@ -11,15 +12,18 @@ impl Gate {
         Self { config }
     }
 
-    pub fn check(&self, tool_input: &Value, tool_id: &str) -> Result<(), String> {
+    pub fn check(&self, tool_input: &Value, tool_id: &str) -> BackendResult<()> {
         if tool_id == "runcommand" {
             let Some(command) = tool_input.get("command").and_then(|v| v.as_str()) else {
-                return Err("missing command".to_string());
+                return Err(BackendError::Gate("missing command".to_string()));
             };
             let lower = command.to_lowercase();
             for pattern in &self.config.forbidden_command_patterns {
                 if lower.contains(pattern) || lower == *pattern {
-                    return Err(format!("forbidden command pattern: {}", pattern));
+                    return Err(BackendError::Gate(format!(
+                        "forbidden command pattern: {}",
+                        pattern
+                    )));
                 }
             }
         }
@@ -30,8 +34,15 @@ impl Gate {
             };
             let path = PathBuf::from(path_val);
             for pattern in &self.config.forbidden_path_patterns {
-                if path.to_string_lossy().to_lowercase().contains(pattern.to_lowercase().as_str()) {
-                    return Err(format!("forbidden path pattern: {}", pattern));
+                if path
+                    .to_string_lossy()
+                    .to_lowercase()
+                    .contains(pattern.to_lowercase().as_str())
+                {
+                    return Err(BackendError::Gate(format!(
+                        "forbidden path pattern: {}",
+                        pattern
+                    )));
                 }
             }
         }

@@ -29,12 +29,10 @@ impl Model {
             .send()
             .await
         {
-            Ok(response) => {
-                match response.json::<OllamaResponse>().await {
-                    Ok(resp) => resp.response,
-                    Err(_) => "error parsing ollama response".to_string(),
-                }
-            }
+            Ok(response) => match response.json::<OllamaResponse>().await {
+                Ok(resp) => resp.response,
+                Err(_) => "error parsing ollama response".to_string(),
+            },
             Err(e) => format!("error calling ollama: {}", e),
         }
     }
@@ -59,7 +57,7 @@ mod tests {
     #[test]
     fn builds_request() {
         let config = Config::from_env();
-        let model = Model::new(config);
+        let _model = Model::new(config);
         let req = OllamaRequest {
             model: "test-model".to_string(),
             prompt: "test prompt".to_string(),

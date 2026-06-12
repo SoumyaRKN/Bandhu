@@ -1,3 +1,4 @@
+use crate::error::{BackendError, BackendResult};
 use crate::tool::Tool;
 use serde_json::Value;
 use std::collections::HashMap;
@@ -34,8 +35,11 @@ impl ToolRegistry {
         Self::default()
     }
 
-    pub fn validate(&self, id: &str, input: &Value) -> Result<(), String> {
-        let tool = self.tools.get(id).ok_or_else(|| format!("tool not found: {}", id))?;
+    pub fn validate(&self, id: &str, input: &Value) -> BackendResult<()> {
+        let tool = self
+            .tools
+            .get(id)
+            .ok_or_else(|| BackendError::NotFound(format!("tool not found: {}", id)))?;
         tool.validate(input)
     }
 
@@ -76,6 +80,7 @@ impl ToolRegistry {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::error::BackendResult;
     use crate::tool::Tool;
     use serde_json::Value;
     use std::sync::Arc;
@@ -99,11 +104,11 @@ mod tests {
             serde_json::json!({})
         }
 
-        fn execute(&self, input: Value) -> std::result::Result<Value, String> {
+        fn execute(&self, input: Value) -> BackendResult<Value> {
             Ok(input)
         }
 
-        fn validate(&self, _input: &Value) -> Result<(), String> {
+        fn validate(&self, _input: &Value) -> BackendResult<()> {
             Ok(())
         }
     }

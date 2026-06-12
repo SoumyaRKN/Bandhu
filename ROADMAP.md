@@ -82,7 +82,7 @@ Build a local-first VS Code coding AI agent (Bandhu) that runs mostly free, work
 | 35 | Define Cargo Dependencies | Add required dependencies to `Cargo.toml` (axum, serde, tokio, reqwest, etc) | `Completed` |
 | 36 | Define API Structure | Design API endpoints for: receive task, accept prompt, return response, execute tool | `Completed` |
 | 37 | Define Task Models | Create data structures for: Task, TaskRequest, TaskResponse, ToolCall | `Completed` |
-| 38 | Define Error Types | Create custom error types (`BackendError` enum) for backend service | `Pending` |
+| 38 | Define Error Types | Create custom error types (`BackendError` enum) for backend service | `Completed` |
 | 39 | Create API Server | Implement HTTP server using Axum framework | `Completed` |
 | 40 | Add CORS Middleware | Configure CORS in `main.rs` to allow VS Code extension origin | `Pending` |
 | 41 | Add Health Check Endpoint | Create `/health` endpoint for monitoring backend status | `Completed` |
@@ -327,7 +327,7 @@ These are high-priority items discovered during the audit that block further dev
 | P0 | No `README.md` at project root | Project root | Create README.md | `Completed` |
 | P1 | Ollama client is inline in `queue.rs` instead of `model.rs` | `backend/src/queue.rs:219` | Extract into `backend/src/model.rs` | `Pending` |
 | P1 | `writefile` overwrites directly — no diff/patch system | `backend/src/writefile.rs` | Implement diff generation and patch application | `Completed` |
-| P1 | No `BackendError` enum — errors are bare `String`s | Throughout backend | Create typed error enum | `Pending` |
+| P1 | No `BackendError` enum — errors are bare `String`s | Throughout backend | Create typed error enum | `Completed` |
 | P1 | No JSON Schema validation on tool inputs | `backend/src/tool.rs` | Add `validate(input) -> Result<()>` to `Tool` trait | `Pending` |
 | P2 | Extension routing types mismatch — `types.ts` `id` field vs backend `request_id` | `bandhu/src/types.ts`, `backend/src/queue.rs` | Align field names | `Pending` |
 | P2 | No streaming support for `/chat` | `backend/src/main.rs`, `bandhu/src/api.ts` | Implement SSE streaming | `Pending` |

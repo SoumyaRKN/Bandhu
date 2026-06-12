@@ -99,14 +99,18 @@ impl Config {
     }
 
     pub fn server_addr(&self) -> std::net::SocketAddr {
-        let host = self.server_host.parse().unwrap_or_else(|_| {
-            std::net::IpAddr::V4(std::net::Ipv4Addr::new(127, 0, 0, 1))
-        });
+        let host = self
+            .server_host
+            .parse()
+            .unwrap_or_else(|_| std::net::IpAddr::V4(std::net::Ipv4Addr::new(127, 0, 0, 1)));
         std::net::SocketAddr::new(host, self.server_port)
     }
 
     pub fn ollama_api_url(&self) -> String {
-        format!("{}/api/generate", self.ollama_base_url.trim_end_matches('/'))
+        format!(
+            "{}/api/generate",
+            self.ollama_base_url.trim_end_matches('/')
+        )
     }
 
     pub fn context_api_url(&self) -> String {
