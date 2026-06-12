@@ -13,7 +13,8 @@ impl Gate {
     }
 
     pub fn check(&self, tool_input: &Value, tool_id: &str) -> BackendResult<()> {
-        if tool_id == "runcommand" {
+        let checkscommand = matches!(tool_id, "runcommand" | "buildtool" | "testrunner");
+        if checkscommand {
             let Some(command) = tool_input.get("command").and_then(|v| v.as_str()) else {
                 return Err(BackendError::Gate("missing command".to_string()));
             };
@@ -28,7 +29,11 @@ impl Gate {
             }
         }
 
-        if tool_id == "writefile" || tool_id == "readfile" || tool_id == "runcommand" {
+        let checkspath = matches!(
+            tool_id,
+            "writefile" | "readfile" | "runcommand" | "buildtool" | "testrunner"
+        );
+        if checkspath {
             let Some(path_val) = tool_input.get("path").and_then(|v| v.as_str()) else {
                 return Ok(());
             };
@@ -51,7 +56,7 @@ impl Gate {
     }
 
     pub fn install(&self, tool_input: &Value, tool_id: &str) -> Option<String> {
-        if tool_id != "runcommand" {
+        if tool_id != "runcommand" && tool_id != "buildtool" && tool_id != "testrunner" {
             return None;
         }
 
@@ -65,7 +70,10 @@ impl Gate {
     }
 
     pub fn requires_approval(&self, tool_id: &str) -> bool {
-        matches!(tool_id, "writefile" | "runcommand")
+        matches!(
+            tool_id,
+            "writefile" | "runcommand" | "buildtool" | "testrunner"
+        )
     }
 }
 
@@ -116,6 +124,28 @@ mod tests {
         let result = gate.check(&json!({"command": "cargo test"}), "runcommand");
 
         assert!(result.is_ok());
+    }
+
+    #[test]
+    fn allowstools() {
+        let gate = Gate::new(Config::from_env());
+
+        let build = gate.check(&json!({"command": "cargo build"}), "buildtool");
+        let test = gate.check(&json!({"command": "cargo test"}), "testrunner");
+
+        assert!(build.is_ok());
+        assert!(test.is_ok());
+    }
+
+    #[test]
+    fn blockstools() {
+        let gate = Gate::new(Config::from_env());
+
+        let build = gate.check(&json!({"command": "sudo cargo build"}), "buildtool");
+        let test = gate.check(&json!({"command": "sudo cargo test"}), "testrunner");
+
+        assert!(build.is_err());
+        assert!(test.is_err());
     }
 
     #[test]

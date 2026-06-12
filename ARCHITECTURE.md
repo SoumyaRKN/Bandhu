@@ -164,6 +164,8 @@ trait:
 | writefile  | write or replace file content  | yes               |
 | applypatch | apply unified diff patch       | yes               |
 | runcommand | execute shell command          | yes               |
+| buildtool  | run configured build command   | yes               |
+| testrunner | run configured test command    | yes               |
 | listdir    | list directory entries         | no                |
 
 ### Future Tool Addition
@@ -326,5 +328,5 @@ experiments/             prototyping and benchmarks
 | safety filter         | done           |
 | approval modal        | done           |
 | diff approval         | done           |
-| test loop             | todo           |
+| test loop             | tool foundation done; loop automation pending |
 | P0 compile fixes      | done           |

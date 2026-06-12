@@ -58,6 +58,16 @@ The `Bandhu: Open Chat` command and status bar item open the webview chat panel.
 | `BANDHU_RG_MAX_COUNT` | `50` | Max ripgrep matches returned per search. |
 | `BANDHU_SCHEMA_VALIDATE` | `true` | Validate tool input against each tool schema before execution. Set to `false` only for debugging. |
 | `BANDHU_TOOL_INPUT_LIMIT` | `65536` | Max serialized JSON bytes allowed for a tool input payload. |
+| `BANDHU_TOOL_TIMEOUT_SECS` | `120` | Max seconds allowed for long-running command tools such as `buildtool` and `testrunner`. Example: `300` for a five-minute cap. |
+
+## Build And Test Tools
+
+| Variable | Default | Description |
+|---|---|---|
+| `BANDHU_BUILD_COMMAND` | `cargo build` | Default command executed by the `buildtool` tool. Example: `npm run build`. |
+| `BANDHU_BUILD_WORKDIR` | `.` | Default working directory for `buildtool`. Example: `backend` or `bandhu`. |
+| `BANDHU_TEST_COMMAND` | `cargo test` | Default command executed by the `testrunner` tool. Example: `npm test`. |
+| `BANDHU_TEST_WORKDIR` | `.` | Default working directory for `testrunner`. Example: `backend` or `bandhu`. |
 
 ---
 
@@ -159,6 +169,11 @@ BANDHU_MAX_ITERATIONS=10
 BANDHU_RG_MAX_COUNT=50
 BANDHU_SCHEMA_VALIDATE=true
 BANDHU_TOOL_INPUT_LIMIT=65536
+BANDHU_TOOL_TIMEOUT_SECS=120
+BANDHU_BUILD_COMMAND=cargo build
+BANDHU_BUILD_WORKDIR=.
+BANDHU_TEST_COMMAND=cargo test
+BANDHU_TEST_WORKDIR=.
 BANDHU_DEFAULT_APPROVAL=false
 BANDHU_APPROVAL_TIMEOUT_SECS=300
 BANDHU_APPROVAL_LOG=./approval.jsonl

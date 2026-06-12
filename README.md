@@ -150,6 +150,11 @@ All configuration is managed via **environment variables**. Create a `.env` file
 | `BANDHU_RG_MAX_COUNT` | `50` | Max ripgrep matches for context building |
 | `BANDHU_SCHEMA_VALIDATE` | `true` | Validate tool inputs against registered tool schemas |
 | `BANDHU_TOOL_INPUT_LIMIT` | `65536` | Max serialized JSON bytes allowed for a tool input |
+| `BANDHU_TOOL_TIMEOUT_SECS` | `120` | Max seconds for long-running command tools such as `buildtool` and `testrunner` |
+| `BANDHU_BUILD_COMMAND` | `cargo build` | Default command executed by the build tool |
+| `BANDHU_BUILD_WORKDIR` | `.` | Default working directory for the build tool |
+| `BANDHU_TEST_COMMAND` | `cargo test` | Default command executed by the test runner |
+| `BANDHU_TEST_WORKDIR` | `.` | Default working directory for the test runner |
 | `BANDHU_DEFAULT_APPROVAL` | `false` | Auto-approve all tool calls (`true`/`false`) |
 | `BANDHU_APPROVAL_TIMEOUT_SECS` | `300` | Seconds before approval prompt times out |
 | `BANDHU_FORBIDDEN_CMDS` | *(empty)* | Comma-separated forbidden command patterns |
@@ -169,6 +174,11 @@ BANDHU_MAX_ITERATIONS=10
 BANDHU_RG_MAX_COUNT=50
 BANDHU_SCHEMA_VALIDATE=true
 BANDHU_TOOL_INPUT_LIMIT=65536
+BANDHU_TOOL_TIMEOUT_SECS=120
+BANDHU_BUILD_COMMAND=cargo build
+BANDHU_BUILD_WORKDIR=.
+BANDHU_TEST_COMMAND=cargo test
+BANDHU_TEST_WORKDIR=.
 BANDHU_DEFAULT_APPROVAL=false
 BANDHU_APPROVAL_TIMEOUT_SECS=300
 BANDHU_FORBIDDEN_CMDS=rm -rf,sudo
@@ -233,6 +243,8 @@ Set these variables in your shell before launching VS Code, or load `bandhu/.env
 | `search` | Text search via ripgrep | No |
 | `writefile` | Write or replace file content | Yes |
 | `runcommand` | Execute shell command | Yes |
+| `buildtool` | Run configured build command | Yes |
+| `testrunner` | Run configured test command and summarize failures | Yes |
 | `listdir` | List directory entries | No |
 
 ## Project Structure

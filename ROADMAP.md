@@ -200,12 +200,12 @@ Build a local-first VS Code coding AI agent (Bandhu) that runs mostly free, work
 
 | # | Task | Description | Status |
 |---|------|-------------|--------|
-| 97 | Implement Build Tool | Create tool to run project build commands (cargo build, npm run build, etc) | `Pending` |
-| 98 | Implement Test Runner | Create tool to run project tests and capture output | `Pending` |
+| 97 | Implement Build Tool | Create tool to run project build commands (cargo build, npm run build, etc) | `Completed` |
+| 98 | Implement Test Runner | Create tool to run project tests and capture output | `Completed` |
 | 99 | Add Build Loop | Implement loop that runs build after code edits to verify compilation | `Pending` |
 | 100 | Add Test Loop | Implement loop that runs tests after build succeeds | `Pending` |
 | 101 | Implement Fix Loop | Implement loop: build fails → send errors to model → fix → rebuild until success | `Pending` |
-| 102 | Parse Test Output | Create parser to extract test failures and error messages for the model | `Pending` |
+| 102 | Parse Test Output | Create parser to extract test failures and error messages for the model | `Completed` |
 | 103 | Add Test Result Reporting | Display build and test results to user in VS Code output channel | `Pending` |
 | 104 | Test Full Testing Loop | Verify complete loop: edit → build → test → fix works for sample project | `Pending` |
 

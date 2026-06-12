@@ -5,7 +5,6 @@ use axum::{
     routing::{get, post},
     Router,
 };
-use env_logger;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
@@ -17,6 +16,8 @@ use tokio_stream::StreamExt;
 use tower_http::cors::{Any, CorsLayer};
 
 mod applypatch;
+mod buildtool;
+mod commandtool;
 mod config;
 mod context;
 mod diff;
@@ -29,10 +30,12 @@ mod readfile;
 mod registry;
 mod runcommand;
 mod search;
+mod testrunner;
 mod tool;
 mod writefile;
 
 use crate::applypatch::Applypatch;
+use crate::buildtool::Buildtool;
 use crate::config::Config;
 use crate::context::ContextBuilder;
 use crate::error::BackendError;
@@ -43,6 +46,7 @@ use crate::readfile::Readfile;
 use crate::registry::ToolRegistry;
 use crate::runcommand::Runcommand;
 use crate::search::Search;
+use crate::testrunner::Testrunner;
 use crate::writefile::Writefile;
 
 #[derive(Debug, Deserialize)]
@@ -280,6 +284,8 @@ async fn main() {
     registry
         .register(Arc::new(Runcommand::new(config.clone())))
         .unwrap();
+    registry.register(Arc::new(Buildtool::new())).unwrap();
+    registry.register(Arc::new(Testrunner::new())).unwrap();
     registry
         .register(Arc::new(Listdir::new(config.clone())))
         .unwrap();

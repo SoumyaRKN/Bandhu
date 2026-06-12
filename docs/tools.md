@@ -161,3 +161,63 @@ Output:
 Approval: yes.
 
 Configuration: `BANDHU_FORBIDDEN_CMDS` blocks dangerous command substrings before approval and execution. The default blocks `rm -rf`, `sudo`, and shell ampersand operators, and can be replaced through the environment. `BANDHU_INSTALL_CMDS` tags package install approvals with `kind: "install"` and the matched `pattern`.
+
+## `buildtool`
+
+Runs the configured build command and returns captured output.
+
+Input:
+
+```json
+{
+  "command": "cargo build",
+  "directory": "backend"
+}
+```
+
+Output:
+
+```json
+{
+  "command": "cargo build",
+  "directory": "backend",
+  "stdout": "...",
+  "stderr": "",
+  "status": 0
+}
+```
+
+Approval: yes.
+
+Configuration: `BANDHU_BUILD_COMMAND` sets the default build command, `BANDHU_BUILD_WORKDIR` sets the default working directory, and `BANDHU_TOOL_TIMEOUT_SECS` caps command runtime. Input fields override the environment defaults for one tool call.
+
+## `testrunner`
+
+Runs the configured test command, captures output, and returns a parsed failure summary.
+
+Input:
+
+```json
+{
+  "command": "cargo test",
+  "directory": "backend"
+}
+```
+
+Output:
+
+```json
+{
+  "command": "cargo test",
+  "directory": "backend",
+  "stdout": "...",
+  "stderr": "",
+  "status": 0,
+  "summary": "passed",
+  "failures": []
+}
+```
+
+Approval: yes.
+
+Configuration: `BANDHU_TEST_COMMAND` sets the default test command, `BANDHU_TEST_WORKDIR` sets the default working directory, and `BANDHU_TOOL_TIMEOUT_SECS` caps command runtime. Input fields override the environment defaults for one tool call.
