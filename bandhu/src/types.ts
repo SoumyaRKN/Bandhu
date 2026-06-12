@@ -1,5 +1,5 @@
 export interface ChatMessage {
-    type: 'response' | 'tool_result' | 'tool_error' | 'tool_approval' | 'error' | 'complete';
+    type: 'response' | 'tool_result' | 'tool_error' | 'tool_approval' | 'build_result' | 'error' | 'complete';
     content?: string;
     id?: string;
     tool?: string;

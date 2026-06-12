@@ -183,11 +183,15 @@ Output:
     "directory": "backend",
     "stdout": "...",
     "stderr": "",
-    "status": 0
+    "status": 0,
+    "summary": "passed",
+    "failures": []
 }
 ```
 
 Approval: yes.
+
+See also [Build Loop](./buildloop.md) for automatic post-edit builds.
 
 Configuration: `BANDHU_BUILD_COMMAND` sets the default build command, `BANDHU_BUILD_WORKDIR` sets the default working directory, and `BANDHU_TOOL_TIMEOUT_SECS` caps command runtime. Input fields override the environment defaults for one tool call.
 

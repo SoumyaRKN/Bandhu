@@ -1,17 +1,20 @@
 use crate::commandtool;
+use crate::config::Config;
 use crate::error::{BackendError, BackendResult};
 use crate::gate::Gate;
 use crate::tool::Tool;
 use serde_json::{json, Value};
 
 pub struct Buildtool {
+    config: Config,
     gate: Gate,
 }
 
 impl Buildtool {
-    pub fn new() -> Self {
+    pub fn new(config: Config) -> Self {
         Self {
-            gate: Gate::new(crate::config::Config::from_env()),
+            gate: Gate::new(config.clone()),
+            config,
         }
     }
 }
@@ -47,13 +50,20 @@ impl Tool for Buildtool {
         let command = self.inputcommand(&input)?;
         let directory = self.inputdirectory(&input)?;
         self.gate.check(&json!({"command": command}), "buildtool")?;
-        let output = commandtool::run(&command, &directory, commandtool::timeout())?;
+        let output = commandtool::run(&command, &directory, self.config.tool_timeout_secs)?;
+        let summary = if output.status == 0 {
+            "passed"
+        } else {
+            "failed"
+        };
         Ok(json!({
             "command": command,
             "directory": directory,
             "stdout": output.stdout,
             "stderr": output.stderr,
-            "status": output.status
+            "status": output.status,
+            "summary": summary,
+            "failures": commandtool::failures(&output.stdout, &output.stderr)
         }))
     }
 
@@ -77,7 +87,7 @@ impl Buildtool {
                 .map(|value| value.to_string())
                 .ok_or_else(|| BackendError::Tool("command must be string".into()));
         }
-        Ok(commandtool::command("BANDHU_BUILD_COMMAND", "cargo build"))
+        Ok(self.config.build_command.clone())
     }
 
     fn inputdirectory(&self, input: &Value) -> BackendResult<String> {
@@ -87,7 +97,7 @@ impl Buildtool {
                 .map(|value| value.to_string())
                 .ok_or_else(|| BackendError::Tool("directory must be string".into()));
         }
-        Ok(commandtool::directory("BANDHU_BUILD_WORKDIR", "."))
+        Ok(self.config.build_workdir.clone())
     }
 }
 
@@ -97,7 +107,7 @@ mod tests {
 
     #[test]
     fn metadata() {
-        let tool = Buildtool::new();
+        let tool = Buildtool::new(Config::from_env());
 
         assert_eq!(tool.id(), "buildtool");
         assert_eq!(tool.name(), "Buildtool");
@@ -107,14 +117,14 @@ mod tests {
 
     #[test]
     fn rejectsnonobject() {
-        let tool = Buildtool::new();
+        let tool = Buildtool::new(Config::from_env());
 
         assert!(tool.validate(&json!("cargo build")).is_err());
     }
 
     #[test]
     fn rejectsemptycommand() {
-        let tool = Buildtool::new();
+        let tool = Buildtool::new(Config::from_env());
 
         assert!(tool.validate(&json!({"command": ""})).is_err());
     }

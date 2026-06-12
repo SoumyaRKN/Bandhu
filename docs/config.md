@@ -23,6 +23,8 @@ All configurable parameters are set via environment variables or a `.env` file i
 | `BANDHU_STATUS_TOOLTIP`         | `Ready`                  | Tooltip shown when Bandhu is idle. Example: `Bandhu is ready`.                                                                       |
 | `BANDHU_STATUS_BUSY_TOOLTIP`    | `Working`                | Tooltip shown while a chat request is running. Example: `Bandhu is working`.                                                         |
 | `BANDHU_STATUS_ERROR_TOOLTIP`   | `Error`                  | Tooltip shown after a chat request fails. Example: `Bandhu request failed`.                                                          |
+| `BANDHU_OUTPUT_NAME`            | `Bandhu`                 | VS Code output channel name for build and test logs. Example: `Bandhu Build`.                                                        |
+| `BANDHU_OUTPUT_SHOW`            | `true`                   | Focus the output channel when build or test results arrive. Set to `false` to leave the current panel focused.                       |
 
 The extension uses `/chat/stream` for incremental SSE messages when `BANDHU_CHAT_STREAMING=true`. It falls back to `/chat` only when streaming is disabled. `/chat` returns a compatibility `response` string and a structured `messages` array that the controller forwards to the webview.
 
@@ -66,6 +68,7 @@ The `Bandhu: Open Chat` command and status bar item open the webview chat panel.
 | ---------------------- | ------------- | --------------------------------------------------------------------------- |
 | `BANDHU_BUILD_COMMAND` | `cargo build` | Default command executed by the `buildtool` tool. Example: `npm run build`. |
 | `BANDHU_BUILD_WORKDIR` | `.`           | Default working directory for `buildtool`. Example: `backend` or `bandhu`.  |
+| `BANDHU_BUILD_LOOP`    | `true`        | Run build automatically after successful `writefile` or `applypatch`. Set to `false` to disable. |
 | `BANDHU_TEST_COMMAND`  | `cargo test`  | Default command executed by the `testrunner` tool. Example: `npm test`.     |
 | `BANDHU_TEST_WORKDIR`  | `.`           | Default working directory for `testrunner`. Example: `backend` or `bandhu`. |
 
@@ -161,6 +164,8 @@ BANDHU_STATUS_ERROR_TEXT=$(error) Bandhu
 BANDHU_STATUS_TOOLTIP=Ready
 BANDHU_STATUS_BUSY_TOOLTIP=Working
 BANDHU_STATUS_ERROR_TOOLTIP=Error
+BANDHU_OUTPUT_NAME=Bandhu
+BANDHU_OUTPUT_SHOW=true
 BANDHU_CORS_ORIGINS=*
 BANDHU_OLLAMA_BASE_URL=http://localhost:11434
 BANDHU_OLLAMA_MODEL=qwen2.5-coder:7b
@@ -172,6 +177,7 @@ BANDHU_TOOL_INPUT_LIMIT=65536
 BANDHU_TOOL_TIMEOUT_SECS=120
 BANDHU_BUILD_COMMAND=cargo build
 BANDHU_BUILD_WORKDIR=.
+BANDHU_BUILD_LOOP=true
 BANDHU_TEST_COMMAND=cargo test
 BANDHU_TEST_WORKDIR=.
 BANDHU_DEFAULT_APPROVAL=false

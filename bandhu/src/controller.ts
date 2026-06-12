@@ -4,11 +4,13 @@ import { ChatPanel } from './chatui';
 import { sendchat, sendchatstream, approve, reject } from './api';
 import { ChatMessage, ApprovalRequestMsg, WebviewMsg } from './types';
 import { fromEnv } from './config';
+import { Report } from './report';
 
 export class Controller implements vscode.Disposable {
     private status: Statusbar = new Statusbar();
     private config = fromEnv();
     private chat: ChatPanel = new ChatPanel(this.config.placeholder);
+    private report: Report = new Report(this.config.outputName);
 
     constructor(private ctx: vscode.ExtensionContext) {
         ctx.subscriptions.push(this);
@@ -32,7 +34,7 @@ export class Controller implements vscode.Disposable {
             this.status.setbusy();
             try {
                 if (this.config.streaming) {
-                    await sendchatstream(msg.text, resmsg => this.chat.append(resmsg));
+                    await sendchatstream(msg.text, resmsg => this.handle(resmsg));
                 } else {
                     const res = await sendchat(msg.text);
                     this.show(res);
@@ -51,19 +53,28 @@ export class Controller implements vscode.Disposable {
         }
     }
 
+    private handle(msg: ChatMessage) {
+        this.report.log(msg);
+        if (this.config.outputShow && (msg.type === 'build_result' || msg.type === 'tool_result')) {
+            this.report.show();
+        }
+        this.chat.append(msg);
+    }
+
     private show(res: { response: string; messages?: ChatMessage[] }) {
         const list = res.messages && res.messages.length > 0
             ? res.messages
             : [{ type: 'response', content: res.response } as ChatMessage];
 
         for (const msg of list) {
-            this.chat.append(msg);
+            this.handle(msg);
         }
     }
 
     dispose() {
         this.status.dispose();
         this.chat.dispose();
+        this.report.dispose();
     }
 }
 

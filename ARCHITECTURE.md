@@ -79,6 +79,7 @@ Bandhu is a local-first VS Code coding AI agent. The system runs entirely on the
 | safety     | command filtering and approval enforcement |
 | api        | HTTP endpoints and request routing         |
 | model      | Ollama client abstraction                  |
+| buildloop  | runs build after successful file edits       |
 | diff       | unified diff generation and application    |
 | applypatch | patch application tool                     |
 
@@ -328,5 +329,5 @@ experiments/             prototyping and benchmarks
 | safety filter         | done                                          |
 | approval modal        | done                                          |
 | diff approval         | done                                          |
-| test loop             | tool foundation done; loop automation pending |
+| test loop             | build loop done; test loop and fix loop pending |
 | P0 compile fixes      | done                                          |

@@ -6,6 +6,8 @@ export interface EnvConfig {
     forbiddenPaths: string[];
     placeholder: string;
     streaming: boolean;
+    outputName: string;
+    outputShow: boolean;
 }
 
 export function fromEnv(): EnvConfig {
@@ -23,5 +25,7 @@ export function fromEnv(): EnvConfig {
             .filter(Boolean),
         placeholder: process.env.BANDHU_CHAT_PLACEHOLDER || 'Ask Bandhu...',
         streaming: process.env.BANDHU_CHAT_STREAMING !== 'false',
+        outputName: process.env.BANDHU_OUTPUT_NAME || 'Bandhu',
+        outputShow: process.env.BANDHU_OUTPUT_SHOW !== 'false',
     };
 }

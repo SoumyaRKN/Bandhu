@@ -101,6 +101,18 @@ export class ChatPanel {
         const input = document.getElementById('input');
         const sendBtn = document.getElementById('send');
 
+        function formatBuild(result, error) {
+            if (error) {
+                return 'build failed: ' + error;
+            }
+            if (!result) {
+                return 'build finished';
+            }
+            const summary = result.summary || 'unknown';
+            const command = result.command || '';
+            return 'build ' + summary + ': ' + command;
+        }
+
         function addMessage(type, content) {
             const div = document.createElement('div');
             div.className = 'msg ' + type;
@@ -161,8 +173,11 @@ export class ChatPanel {
                 const data = msg.data;
                 if (data.type === 'tool_approval') {
                     addApproval(data.id, data.tool, data.input, data.diff);
-                } else if (data.type === 'response' || data.type === 'tool_result' || data.type === 'tool_error' || data.type === 'error') {
-                    addMessage(data.type, data.content || data.error || '');
+                } else if (data.type === 'response' || data.type === 'tool_result' || data.type === 'tool_error' || data.type === 'build_result' || data.type === 'error') {
+                    const text = data.type === 'build_result'
+                        ? formatBuild(data.result, data.error)
+                        : (data.content || data.error || '');
+                    addMessage(data.type, text);
                 }
             } else if (msg.type === 'focus') {
                 input.focus();

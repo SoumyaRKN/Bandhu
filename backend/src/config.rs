@@ -9,23 +9,25 @@ pub struct Config {
     pub ollama_stream: bool,
     pub max_iterations: usize,
     pub rg_max_count: usize,
-    #[allow(dead_code)]
     pub default_approval: bool,
-    #[allow(dead_code)]
     pub approval_timeout_secs: u64,
     pub forbidden_command_patterns: Vec<String>,
     pub installpatterns: Vec<String>,
     pub forbidden_path_patterns: Vec<String>,
-    #[allow(dead_code)]
     pub schema_validate: bool,
-    #[allow(dead_code)]
     pub tool_input_limit: usize,
+    pub tool_timeout_secs: u64,
     pub context_token_limit: usize,
     pub context_top_n: usize,
     pub context_max_file_bytes: usize,
     pub ollama_timeout_secs: u64,
     pub cors: Vec<String>,
     pub approvallog: Option<String>,
+    pub build_command: String,
+    pub build_workdir: String,
+    pub build_loop: bool,
+    pub test_command: String,
+    pub test_workdir: String,
 }
 
 impl Config {
@@ -92,6 +94,10 @@ impl Config {
                 .ok()
                 .and_then(|v| v.parse().ok())
                 .unwrap_or(65536),
+            tool_timeout_secs: env::var("BANDHU_TOOL_TIMEOUT_SECS")
+                .ok()
+                .and_then(|v| v.parse().ok())
+                .unwrap_or(120),
             context_token_limit: env::var("BANDHU_CONTEXT_TOKEN_LIMIT")
                 .ok()
                 .and_then(|v| v.parse().ok())
@@ -115,6 +121,18 @@ impl Config {
                 .map(|s| s.trim().to_string())
                 .collect(),
             approvallog: env::var("BANDHU_APPROVAL_LOG").ok(),
+            build_command: env::var("BANDHU_BUILD_COMMAND")
+                .unwrap_or_else(|_| "cargo build".to_string()),
+            build_workdir: env::var("BANDHU_BUILD_WORKDIR")
+                .unwrap_or_else(|_| ".".to_string()),
+            build_loop: env::var("BANDHU_BUILD_LOOP")
+                .ok()
+                .map(|v| v == "true")
+                .unwrap_or(true),
+            test_command: env::var("BANDHU_TEST_COMMAND")
+                .unwrap_or_else(|_| "cargo test".to_string()),
+            test_workdir: env::var("BANDHU_TEST_WORKDIR")
+                .unwrap_or_else(|_| ".".to_string()),
         }
     }
 

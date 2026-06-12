@@ -16,6 +16,7 @@ use tokio_stream::StreamExt;
 use tower_http::cors::{Any, CorsLayer};
 
 mod applypatch;
+mod buildloop;
 mod buildtool;
 mod commandtool;
 mod config;
@@ -284,7 +285,9 @@ async fn main() {
     registry
         .register(Arc::new(Runcommand::new(config.clone())))
         .unwrap();
-    registry.register(Arc::new(Buildtool::new())).unwrap();
+    registry
+        .register(Arc::new(Buildtool::new(config.clone())))
+        .unwrap();
     registry.register(Arc::new(Testrunner::new())).unwrap();
     registry
         .register(Arc::new(Listdir::new(config.clone())))

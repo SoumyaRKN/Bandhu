@@ -36,7 +36,7 @@ __export(extension_exports, {
 module.exports = __toCommonJS(extension_exports);
 
 // src/controller.ts
-var vscode3 = __toESM(require("vscode"));
+var vscode4 = __toESM(require("vscode"));
 
 // src/status.ts
 var vscode = __toESM(require("vscode"));
@@ -162,6 +162,18 @@ var ChatPanel = class {
         const input = document.getElementById('input');
         const sendBtn = document.getElementById('send');
 
+        function formatBuild(result, error) {
+            if (error) {
+                return 'build failed: ' + error;
+            }
+            if (!result) {
+                return 'build finished';
+            }
+            const summary = result.summary || 'unknown';
+            const command = result.command || '';
+            return 'build ' + summary + ': ' + command;
+        }
+
         function addMessage(type, content) {
             const div = document.createElement('div');
             div.className = 'msg ' + type;
@@ -222,8 +234,11 @@ var ChatPanel = class {
                 const data = msg.data;
                 if (data.type === 'tool_approval') {
                     addApproval(data.id, data.tool, data.input, data.diff);
-                } else if (data.type === 'response' || data.type === 'tool_result' || data.type === 'tool_error' || data.type === 'error') {
-                    addMessage(data.type, data.content || data.error || '');
+                } else if (data.type === 'response' || data.type === 'tool_result' || data.type === 'tool_error' || data.type === 'build_result' || data.type === 'error') {
+                    const text = data.type === 'build_result'
+                        ? formatBuild(data.result, data.error)
+                        : (data.content || data.error || '');
+                    addMessage(data.type, text);
                 }
             } else if (msg.type === 'focus') {
                 input.focus();
@@ -389,9 +404,91 @@ function fromEnv() {
     forbiddenCommands: (process.env.BANDHU_FORBIDDEN_CMDS || "").split(",").map((s) => s.trim().toLowerCase()).filter(Boolean),
     forbiddenPaths: (process.env.BANDHU_FORBIDDEN_PATHS || "").split(",").map((s) => s.trim()).filter(Boolean),
     placeholder: process.env.BANDHU_CHAT_PLACEHOLDER || "Ask Bandhu...",
-    streaming: process.env.BANDHU_CHAT_STREAMING !== "false"
+    streaming: process.env.BANDHU_CHAT_STREAMING !== "false",
+    outputName: process.env.BANDHU_OUTPUT_NAME || "Bandhu",
+    outputShow: process.env.BANDHU_OUTPUT_SHOW !== "false"
   };
 }
+
+// src/report.ts
+var vscode3 = __toESM(require("vscode"));
+var Report = class {
+  channel;
+  constructor(name) {
+    this.channel = vscode3.window.createOutputChannel(name);
+  }
+  show() {
+    this.channel.show(true);
+  }
+  log(msg) {
+    if (msg.type === "build_result") {
+      this.logbuild(msg);
+      return;
+    }
+    if (msg.type !== "tool_result") {
+      return;
+    }
+    const tool = msg.id || "";
+    const result = msg.result;
+    if (!result) {
+      return;
+    }
+    if (tool === "buildtool") {
+      this.logbuild({ type: "build_result", result });
+      return;
+    }
+    if (tool === "testrunner") {
+      this.logtest(result);
+    }
+  }
+  dispose() {
+    this.channel.dispose();
+  }
+  logbuild(msg) {
+    const result = msg.result;
+    const error = msg.error;
+    const stamp = (/* @__PURE__ */ new Date()).toISOString();
+    this.channel.appendLine(`[${stamp}] build`);
+    if (error) {
+      this.channel.appendLine(`error: ${error}`);
+      this.channel.appendLine("");
+      return;
+    }
+    if (!result) {
+      return;
+    }
+    this.writesection("build", result);
+  }
+  logtest(result) {
+    const stamp = (/* @__PURE__ */ new Date()).toISOString();
+    this.channel.appendLine(`[${stamp}] test`);
+    this.writesection("test", result);
+  }
+  writesection(kind, result) {
+    this.channel.appendLine(`command: ${result.command || ""}`);
+    this.channel.appendLine(`directory: ${result.directory || ""}`);
+    this.channel.appendLine(`summary: ${result.summary || ""}`);
+    if (result.stdout) {
+      this.channel.appendLine("stdout:");
+      this.channel.appendLine(String(result.stdout));
+    }
+    if (result.stderr) {
+      this.channel.appendLine("stderr:");
+      this.channel.appendLine(String(result.stderr));
+    }
+    this.logfailures(result.failures);
+    this.channel.appendLine("");
+  }
+  logfailures(failures) {
+    if (!Array.isArray(failures) || failures.length === 0) {
+      return;
+    }
+    this.channel.appendLine("failures:");
+    for (const line of failures) {
+      this.channel.appendLine(String(line));
+    }
+  }
+};
 
 // src/controller.ts
 var Controller = class {
@@ -403,10 +500,11 @@ var Controller = class {
   status = new Statusbar();
   config = fromEnv();
   chat = new ChatPanel(this.config.placeholder);
+  report = new Report(this.config.outputName);
   async activate() {
     this.chat.create();
     const disposables = [];
-    disposables.push(vscode3.commands.registerCommand("bandhu.open", () => this.chat.focus()));
+    disposables.push(vscode4.commands.registerCommand("bandhu.open", () => this.chat.focus()));
     disposables.push(this.chat.onDidReceiveMessage((msg) => this.handleWebviewMsg(msg)));
     for (const d of disposables) {
       this.ctx.subscriptions.push(d);
@@ -417,7 +515,7 @@ var Controller = class {
       this.status.setbusy();
       try {
         if (this.config.streaming) {
-          await sendchatstream(msg.text, (resmsg) => this.chat.append(resmsg));
+          await sendchatstream(msg.text, (resmsg) => this.handle(resmsg));
         } else {
           const res = await sendchat(msg.text);
           this.show(res);
@@ -435,15 +533,23 @@ var Controller = class {
       await reject({ id: msg.id, tool: "", input: {} });
     }
   }
+  handle(msg) {
+    this.report.log(msg);
+    if (this.config.outputShow && (msg.type === "build_result" || msg.type === "tool_result")) {
+      this.report.show();
+    }
+    this.chat.append(msg);
+  }
   show(res) {
     const list = res.messages && res.messages.length > 0 ? res.messages : [{ type: "response", content: res.response }];
     for (const msg of list) {
-      this.chat.append(msg);
+      this.handle(msg);
     }
   }
   dispose() {
     this.status.dispose();
     this.chat.dispose();
+    this.report.dispose();
   }
 };
 

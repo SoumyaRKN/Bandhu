@@ -1,3 +1,4 @@
+use crate::buildloop::Buildloop;
 use crate::config::Config;
 use crate::context::ContextBuilder;
 use crate::error::{BackendError, BackendResult};
@@ -241,7 +242,16 @@ impl Loop {
                                             guard.remove(&req_id);
                                         }
 
-                                        context = append_context(&context, result_value);
+                                        context = append_context(&context, result_value.clone());
+                                        context = self
+                                            .maybebuild(
+                                                tool_id,
+                                                &result_value,
+                                                context,
+                                                &sink,
+                                                &mut messages,
+                                            )
+                                            .await;
                                     }
                                     Ok(false) => {
                                         log::info!("approval rejected: id='{}'", req_id);
@@ -292,7 +302,16 @@ impl Loop {
                                 })
                             }
                         };
-                        context = append_context(&context, result_value);
+                        context = append_context(&context, result_value.clone());
+                        context = self
+                            .maybebuild(
+                                tool_id,
+                                &result_value,
+                                context,
+                                &sink,
+                                &mut messages,
+                            )
+                            .await;
                         continue;
                     }
                     None => {
@@ -337,6 +356,50 @@ impl Loop {
         sendmessage(&sink, &complete).await;
 
         complete
+    }
+
+    async fn maybebuild(
+        &self,
+        tool_id: &str,
+        result_value: &Value,
+        context: Value,
+        sink: &mpsc::Sender<Value>,
+        messages: &mut Vec<Value>,
+    ) -> Value {
+        if !self.config.build_loop {
+            return context;
+        }
+        if tool_id != "writefile" && tool_id != "applypatch" {
+            return context;
+        }
+        if result_value.get("type").and_then(Value::as_str) != Some("tool_result") {
+            return context;
+        }
+
+        log::info!("build loop triggered after '{}'", tool_id);
+        let loop_ = Buildloop::new(self.config.clone());
+        let build_msg = match loop_.run() {
+            Ok(result) => {
+                log::info!(
+                    "build loop finished: summary='{}'",
+                    result.get("summary").and_then(Value::as_str).unwrap_or("")
+                );
+                json!({
+                    "type": "build_result",
+                    "result": result
+                })
+            }
+            Err(err) => {
+                log::error!("build loop failed: {}", err);
+                json!({
+                    "type": "build_result",
+                    "error": err.to_string()
+                })
+            }
+        };
+        messages.push(build_msg.clone());
+        sendmessage(sink, &build_msg).await;
+        append_context(&context, build_msg)
     }
 
     fn logapproval(&self, id: &str, tool: &str, decision: &str) {
