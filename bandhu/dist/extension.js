@@ -174,6 +174,18 @@ var ChatPanel = class {
             return 'build ' + summary + ': ' + command;
         }
 
+        function formattest(result, error) {
+            if (error) {
+                return 'test failed: ' + error;
+            }
+            if (!result) {
+                return 'test finished';
+            }
+            const summary = result.summary || 'unknown';
+            const command = result.command || '';
+            return 'test ' + summary + ': ' + command;
+        }
+
         function addMessage(type, content) {
             const div = document.createElement('div');
             div.className = 'msg ' + type;
@@ -234,9 +246,11 @@ var ChatPanel = class {
                 const data = msg.data;
                 if (data.type === 'tool_approval') {
                     addApproval(data.id, data.tool, data.input, data.diff);
-                } else if (data.type === 'response' || data.type === 'tool_result' || data.type === 'tool_error' || data.type === 'build_result' || data.type === 'error') {
+                } else if (data.type === 'response' || data.type === 'tool_result' || data.type === 'tool_error' || data.type === 'build_result' || data.type === 'testresult' || data.type === 'error') {
                     const text = data.type === 'build_result'
                         ? formatBuild(data.result, data.error)
+                        : data.type === 'testresult'
+                        ? formattest(data.result, data.error)
                         : (data.content || data.error || '');
                     addMessage(data.type, text);
                 }
@@ -425,6 +439,10 @@ var Report = class {
       this.logbuild(msg);
       return;
     }
+    if (msg.type === "testresult") {
+      this.logtestmsg(msg);
+      return;
+    }
     if (msg.type !== "tool_result") {
       return;
     }
@@ -443,6 +461,21 @@ var Report = class {
   }
   dispose() {
     this.channel.dispose();
+  }
+  logtestmsg(msg) {
+    const result = msg.result;
+    const error = msg.error;
+    const stamp = (/* @__PURE__ */ new Date()).toISOString();
+    this.channel.appendLine(`[${stamp}] test`);
+    if (error) {
+      this.channel.appendLine(`error: ${error}`);
+      this.channel.appendLine("");
+      return;
+    }
+    if (!result) {
+      return;
+    }
+    this.writesection("test", result);
   }
   logbuild(msg) {
     const result = msg.result;
@@ -535,7 +568,7 @@ var Controller = class {
   }
   handle(msg) {
     this.report.log(msg);
-    if (this.config.outputShow && (msg.type === "build_result" || msg.type === "tool_result")) {
+    if (this.config.outputShow && (msg.type === "build_result" || msg.type === "testresult" || msg.type === "tool_result")) {
       this.report.show();
     }
     this.chat.append(msg);

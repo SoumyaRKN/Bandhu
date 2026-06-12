@@ -28,6 +28,7 @@ pub struct Config {
     pub build_loop: bool,
     pub test_command: String,
     pub test_workdir: String,
+    pub testloop: bool,
 }
 
 impl Config {
@@ -133,6 +134,10 @@ impl Config {
                 .unwrap_or_else(|_| "cargo test".to_string()),
             test_workdir: env::var("BANDHU_TEST_WORKDIR")
                 .unwrap_or_else(|_| ".".to_string()),
+            testloop: env::var("BANDHU_TEST_LOOP")
+                .ok()
+                .map(|v| v == "true")
+                .unwrap_or(true),
         }
     }
 

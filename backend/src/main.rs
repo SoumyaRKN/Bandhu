@@ -32,6 +32,7 @@ mod registry;
 mod runcommand;
 mod search;
 mod testrunner;
+mod testloop;
 mod tool;
 mod writefile;
 

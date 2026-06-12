@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -e
+
+url="${BANDHU_BACKEND_URL:-http://127.0.0.1:3000}"
+
+echo "Performing check on health..."
+curl -s -X POST "$url/health"
+echo ""
+
+echo "Checking chat loop..."
+res=$(curl -s -X POST "$url/chat" \
+  -H "Content-Type: application/json" \
+  -d '{"prompt":"hello"}')
+echo "$res"

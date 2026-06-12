@@ -55,7 +55,7 @@ export class Controller implements vscode.Disposable {
 
     private handle(msg: ChatMessage) {
         this.report.log(msg);
-        if (this.config.outputShow && (msg.type === 'build_result' || msg.type === 'tool_result')) {
+        if (this.config.outputShow && (msg.type === 'build_result' || msg.type === 'testresult' || msg.type === 'tool_result')) {
             this.report.show();
         }
         this.chat.append(msg);

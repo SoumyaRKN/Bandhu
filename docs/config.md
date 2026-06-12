@@ -71,6 +71,7 @@ The `Bandhu: Open Chat` command and status bar item open the webview chat panel.
 | `BANDHU_BUILD_LOOP`    | `true`        | Run build automatically after successful `writefile` or `applypatch`. Set to `false` to disable. |
 | `BANDHU_TEST_COMMAND`  | `cargo test`  | Default command executed by the `testrunner` tool. Example: `npm test`.     |
 | `BANDHU_TEST_WORKDIR`  | `.`           | Default working directory for `testrunner`. Example: `backend` or `bandhu`. |
+| `BANDHU_TEST_LOOP`     | `true`        | Run tests automatically after successful `build_loop`. Set to `false` to disable. |
 
 ---
 
@@ -180,6 +181,7 @@ BANDHU_BUILD_WORKDIR=.
 BANDHU_BUILD_LOOP=true
 BANDHU_TEST_COMMAND=cargo test
 BANDHU_TEST_WORKDIR=.
+BANDHU_TEST_LOOP=true
 BANDHU_DEFAULT_APPROVAL=false
 BANDHU_APPROVAL_TIMEOUT_SECS=300
 BANDHU_APPROVAL_LOG=./approval.jsonl

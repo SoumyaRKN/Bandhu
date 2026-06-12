@@ -113,6 +113,18 @@ export class ChatPanel {
             return 'build ' + summary + ': ' + command;
         }
 
+        function formattest(result, error) {
+            if (error) {
+                return 'test failed: ' + error;
+            }
+            if (!result) {
+                return 'test finished';
+            }
+            const summary = result.summary || 'unknown';
+            const command = result.command || '';
+            return 'test ' + summary + ': ' + command;
+        }
+
         function addMessage(type, content) {
             const div = document.createElement('div');
             div.className = 'msg ' + type;
@@ -173,9 +185,11 @@ export class ChatPanel {
                 const data = msg.data;
                 if (data.type === 'tool_approval') {
                     addApproval(data.id, data.tool, data.input, data.diff);
-                } else if (data.type === 'response' || data.type === 'tool_result' || data.type === 'tool_error' || data.type === 'build_result' || data.type === 'error') {
+                } else if (data.type === 'response' || data.type === 'tool_result' || data.type === 'tool_error' || data.type === 'build_result' || data.type === 'testresult' || data.type === 'error') {
                     const text = data.type === 'build_result'
                         ? formatBuild(data.result, data.error)
+                        : data.type === 'testresult'
+                        ? formattest(data.result, data.error)
                         : (data.content || data.error || '');
                     addMessage(data.type, text);
                 }

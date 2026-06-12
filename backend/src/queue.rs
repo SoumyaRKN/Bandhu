@@ -1,4 +1,5 @@
 use crate::buildloop::Buildloop;
+use crate::testloop::Testloop;
 use crate::config::Config;
 use crate::context::ContextBuilder;
 use crate::error::{BackendError, BackendResult};
@@ -399,7 +400,49 @@ impl Loop {
         };
         messages.push(build_msg.clone());
         sendmessage(sink, &build_msg).await;
-        append_context(&context, build_msg)
+        let mut context = append_context(&context, build_msg.clone());
+
+        if let Some(result) = build_msg.get("result") {
+            if result.get("summary").and_then(Value::as_str) == Some("passed") {
+                context = self.maybetest(context, sink, messages).await;
+            }
+        }
+        context
+    }
+
+    async fn maybetest(
+        &self,
+        context: Value,
+        sink: &mpsc::Sender<Value>,
+        messages: &mut Vec<Value>,
+    ) -> Value {
+        if !self.config.testloop {
+            return context;
+        }
+        log::info!("test loop triggered");
+        let runner = Testloop::new(self.config.clone());
+        let msg = match runner.run() {
+            Ok(res) => {
+                log::info!(
+                    "test loop finished: summary='{}'",
+                    res.get("summary").and_then(Value::as_str).unwrap_or("")
+                );
+                json!({
+                    "type": "testresult",
+                    "result": res
+                })
+            }
+            Err(err) => {
+                log::error!("test loop failed: {}", err);
+                json!({
+                    "type": "testresult",
+                    "error": err.to_string()
+                })
+            }
+        };
+        messages.push(msg.clone());
+        sendmessage(sink, &msg).await;
+        append_context(&context, msg)
     }
 
     fn logapproval(&self, id: &str, tool: &str, decision: &str) {

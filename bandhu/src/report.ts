@@ -17,6 +17,10 @@ export class Report {
             this.logbuild(msg);
             return;
         }
+        if (msg.type === 'testresult') {
+            this.logtestmsg(msg);
+            return;
+        }
         if (msg.type !== 'tool_result') {
             return;
         }
@@ -36,6 +40,22 @@ export class Report {
 
     dispose() {
         this.channel.dispose();
+    }
+
+    private logtestmsg(msg: ChatMessage) {
+        const result = msg.result as Record<string, unknown> | undefined;
+        const error = msg.error;
+        const stamp = new Date().toISOString();
+        this.channel.appendLine(`[${stamp}] test`);
+        if (error) {
+            this.channel.appendLine(`error: ${error}`);
+            this.channel.appendLine('');
+            return;
+        }
+        if (!result) {
+            return;
+        }
+        this.writesection('test', result);
     }
 
     private logbuild(msg: ChatMessage) {
