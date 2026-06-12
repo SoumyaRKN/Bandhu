@@ -176,7 +176,7 @@ impl Loop {
                                     tool_id
                                 );
 
-                                if tool_id == "writefile" {
+                                if tool_id == "writefile" || tool_id == "applypatch" {
                                     {
                                         let mut guard = self.pending_writes.write().await;
                                         guard.insert(req_id.clone(), tool_input.clone());
@@ -196,7 +196,7 @@ impl Loop {
                                     Ok(true) => {
                                         log::info!("approval granted: id='{}'", req_id);
                                         self.logapproval(&req_id, tool_id, "approved");
-                                        let stored_input = if tool_id == "writefile" {
+                                        let stored_input = if tool_id == "writefile" || tool_id == "applypatch" {
                                             let guard = self.pending_writes.read().await;
                                             guard
                                                 .get(&req_id)
@@ -238,10 +238,10 @@ impl Loop {
                                             }
                                         };
 
-                                        if tool_id == "writefile" {
-                                            let mut guard = self.pending_writes.write().await;
-                                            guard.remove(&req_id);
-                                        }
+                                         if tool_id == "writefile" || tool_id == "applypatch" {
+                                             let mut guard = self.pending_writes.write().await;
+                                             guard.remove(&req_id);
+                                         }
 
                                         context = append_context(&context, result_value.clone());
                                         context = self

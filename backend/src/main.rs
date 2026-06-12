@@ -71,6 +71,8 @@ struct ContextRequest {
 struct ApproveRequest {
     request_id: String,
     approved: bool,
+    content: Option<String>,
+    patch: Option<String>,
 }
 
 #[derive(Debug, Serialize)]
@@ -258,6 +260,32 @@ async fn approve_handler(
     State(state): State<AppState>,
     Json(req): Json<ApproveRequest>,
 ) -> Result<StatusCode, StatusCode> {
+    if req.approved {
+        if let Some(content) = req.content {
+            let mut guard = state.pending_writes.write().await;
+            if let Some(val) = guard.get_mut(&req.request_id) {
+                if let Some(obj) = val.as_object_mut() {
+                    obj.insert("content".to_string(), serde_json::Value::String(content));
+                }
+            }
+        } else if let Some(ref patch) = req.patch {
+            let mut guard = state.pending_writes.write().await;
+            if let Some(val) = guard.get_mut(&req.request_id) {
+                if let Some(obj) = val.as_object_mut() {
+                    if obj.contains_key("content") {
+                        if let Some(path) = obj.get("path").and_then(|v| v.as_str()) {
+                            let existing = std::fs::read_to_string(path).unwrap_or_default();
+                            if let Ok(updated) = crate::diff::apply(patch, &existing) {
+                                obj.insert("content".to_string(), serde_json::Value::String(updated));
+                            }
+                        }
+                    } else if obj.contains_key("patch") {
+                        obj.insert("patch".to_string(), serde_json::Value::String(patch.clone()));
+                    }
+                }
+            }
+        }
+    }
     let mut guard = state.pending_approvals.write().await;
     if let Some(tx) = guard.remove(&req.request_id) {
         let _ = tx.send(req.approved);
