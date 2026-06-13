@@ -38,7 +38,7 @@ The extension consists of these core modules:
 | `api.ts` | HTTP client for backend |
 | `types.ts` | Shared type definitions |
 
-See the [Architecture Overview](../ARCHITECTURE.md) for full system design.
+See the [Architecture Overview](ARCHITECTURE.md) for full system design.
 
 ## Configuration
 
@@ -51,7 +51,7 @@ Environment variables (set before starting VS Code):
 | `BANDHU_CHAT_STREAMING` | `true` | Use SSE streaming endpoint |
 | `BANDHU_CHAT_TIMEOUT_MS` | `120000` | Request timeout in milliseconds |
 
-See [Configuration Reference](../docs/config.md) for all settings.
+See [Configuration Reference](docs/config.md) for all settings.
 
 ## Development
 
